@@ -1,0 +1,77 @@
+# NextWatch — Sequential Movie & TV Recommender
+
+A deep learning MVP that reads a viewer's watch history, learns their evolving taste,
+and recommends what to watch next across **both movies and TV shows**. When the user
+rejects a recommendation, the model corrects itself in real time.
+
+Built for the IE University Deep Learning final project.
+
+## What it does
+
+- **Backend:** a recurrent neural network (GRU/LSTM) trained on the MovieLens watch
+  sequences. It models taste as a _sequence_ — recent watches predict the next watch.
+- **TV + movies:** a dual-head design lets the model recommend across both a movie
+  catalog and a TV-show catalog by matching on content (genre) rather than exact titles.
+- **Learns from mistakes:** thumbs-up / thumbs-down feedback is fed back into the live
+  sequence and the recommendations re-rank instantly.
+- **Frontend:** an interactive Streamlit dashboard. A non-technical user builds or
+  imports a watch history and gets real-time recommendations.
+
+See [`PROJECT_PLAN.md`](PROJECT_PLAN.md) for the full design, data decisions, and rubric mapping.
+
+## Architecture
+
+```
+watch history ─▶ [movie emb ⊕ genre ⊕ rating] ─▶ GRU/LSTM ─▶ hidden state
+                                                       ├─▶ next-movie softmax  (quantitative eval)
+                                                       └─▶ taste vector        (content match → TV + movies)
+```
+
+## Project structure
+
+```
+src/        model, training, evaluation, data prep, inference
+app/        Streamlit dashboard
+notebooks/  EDA, preprocessing, training, evaluation
+data/        datasets (NOT included — see below)
+artifacts/  trained model + encoders (generated locally, not committed)
+deck/        final presentation
+```
+
+## Data (not included)
+
+No datasets are committed to this repo. The training data is public; the personal
+demo data is private and intentionally excluded.
+
+- **Training:** [MovieLens `ml-latest-small`](https://grouplens.org/datasets/movielens/)
+  — download and unzip into `data/ml-latest-small/`.
+- **TV catalog:** an IMDb TV-shows CSV (title, genres, description) in `data/`.
+- **Personal demo (optional):** a user's own Letterboxd and/or Netflix export. These
+  contain private information and are **never** committed (see `.gitignore`).
+
+## Setup
+
+```bash
+python -m venv .venv && source .venv/bin/activate
+pip install -r requirements.txt
+```
+
+## Run
+
+```bash
+# 1. Train the model (writes artifacts/)
+python -m src.train
+
+# 2. Launch the dashboard
+streamlit run app/streamlit_app.py
+```
+
+## Privacy
+
+Personal streaming exports include billing, payment, IP, account, and device records.
+This project only ever reads viewing/ratings files, and `.gitignore` blocks all
+personal and sensitive data from being committed to this public repository.
+
+## Team
+
+Five-member group project. See the presentation deck for individual contributions.

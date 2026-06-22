@@ -1,0 +1,76 @@
+# ============================================================
+# PERSONAL / SENSITIVE DATA — never commit (public repo)
+# ============================================================
+# All datasets stay local. Nothing under data/ is tracked except .gitkeep.
+data/*
+!data/.gitkeep
+
+# Personal streaming exports (Netflix / Letterboxd) and anything that
+# could contain billing, payment, IP, account, device, or identity data.
+*letterboxd*
+*Netflix*
+*netflix*
+ViewingActivity*
+Ratings.csv
+MyList.csv
+SearchHistory*
+Clickstream*
+IndicatedPreferences*
+**/BillingHistory*
+**/Payment*
+**/PAYMENT_AND_BILLING/**
+**/IP_ADDRESSES/**
+**/IpAddress*
+**/ACCOUNT/**
+**/AccountDetails*
+**/DEVICES/**
+**/CUSTOMER_SERVICE/**
+**/MESSAGES/**
+**/PROFILES/**
+**/SURVEYS/**
+*combined_data_*.txt
+movie_titles.csv
+IMDB*.csv
+imdb_tvshows.csv
+
+# ============================================================
+# Trained models / large artifacts
+# ============================================================
+artifacts/*
+!artifacts/.gitkeep
+*.keras
+*.h5
+*.hdf5
+*.weights.h5
+*.pkl
+*.joblib
+*.npy
+*.npz
+
+# ============================================================
+# Python
+# ============================================================
+__pycache__/
+*.py[cod]
+*.egg-info/
+.venv/
+venv/
+env/
+.ipynb_checkpoints/
+my_logs/
+
+# ============================================================
+# Secrets / environment
+# ============================================================
+.env
+.env.*
+*.key
+secrets.*
+
+# ============================================================
+# OS / editor
+# ============================================================
+.DS_Store
+.idea/
+.vscode/
+*.swp
