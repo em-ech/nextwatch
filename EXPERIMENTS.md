@@ -101,18 +101,31 @@ the regularizers (dropout/L2/early-stopping) shown as an ablation. `[H3]`
 
 ---
 
-## Results log (template — fill as runs complete)
+## Results so far (ml-1m, seed 42, validation, max_windows_per_user=30)
 
-| Exp | Config (hash) | Split seed | Val HR@10 | Val MRR | Notes |
-| --- | ------------- | ---------- | --------- | ------- | ----- |
-| E0  |               |            |           |         |       |
-| ... |               |            |           |         |       |
+**E0 gate — PASS.** GRU (id-only) HR@10 0.257 vs most-popular 0.042; paired MRR
+diff +0.099, 95% CI [+0.093, +0.105]. Random floor 0.0029.
 
-Final (test, frozen config, mean±std over seeds):
+**Headline baselines (validation).** RNN beats all three with non-overlapping CIs and
+Wilcoxon p≈0:
 
-| Model             | HR@10 (±) | MRR (±) | 95% CI vs RNN | Wilcoxon p |
-| ----------------- | --------- | ------- | ------------- | ---------- |
-| RNN               |           |         | —             | —          |
-| most-popular      |           |         |               |            |
-| most-recent-genre |           |         |               |            |
-| item-kNN          |           |         |               |            |
+| Model            | Val HR@10 [95% CI]    | Val MRR [95% CI]      | vs RNN p |
+| ---------------- | --------------------- | --------------------- | -------- |
+| RNN (GRU)        | 0.2570 [0.245, 0.268] | 0.1203 [0.114, 0.127] | —        |
+| item-kNN         | 0.0759 [0.069, 0.083] | 0.0352 [0.032, 0.038] | ~0       |
+| recent-genre pop | 0.0446 [0.039, 0.050] | 0.0225 [0.020, 0.025] | ~0       |
+| most-popular     | 0.0419 [0.037, 0.047] | 0.0215 [0.019, 0.024] | ~0       |
+
+**E6 feature ablation (validation).** Genre helps; rating alone slightly hurts HR@10 but
+helps MRR. Decision: **full hybrid** (best MRR/NDCG; the rating channel is also required by
+the feedback loop, and costs nothing on HR@10).
+
+| Variant     | Val HR@10  | Val MRR    | Val NDCG@10 |
+| ----------- | ---------- | ---------- | ----------- |
+| id-only     | 0.2570     | 0.1203     | 0.1410      |
+| +genre      | 0.2706     | 0.1316     | 0.1522      |
+| +rating     | 0.2546     | 0.1205     | 0.1403      |
+| full hybrid | **0.2714** | **0.1337** | **0.1541**  |
+
+> Still TODO: full all-prefix windows (uncap `max_windows_per_user`), L/dim/cell sweeps,
+> then the one-time TEST run on the frozen config under >=3 seeds with CIs + Wilcoxon.
