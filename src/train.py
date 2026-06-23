@@ -17,6 +17,8 @@ import keras
 
 from src.data_prep import build_dataset, pad_histories, pad_ratings
 from src.model import build_hybrid_gru
+from src.evaluate import ranks_from_scores, metrics_from_ranks
+from src import track
 
 RATINGS = "data/ml-1m/ratings.dat"
 ART = "artifacts"
@@ -38,11 +40,19 @@ def main() -> None:
     )
     X_val = [pad_histories(ds.val_hist, MAX_LEN), pad_ratings(ds.val_hist_rat, MAX_LEN)]
     y_val = np.asarray(ds.val_target, dtype=np.int32)
-    model.fit(
+    history = model.fit(
         [ds.X_train, ds.X_train_rat], ds.y_train,
         validation_data=(X_val, y_val), epochs=60, batch_size=256, verbose=2,
         callbacks=[keras.callbacks.EarlyStopping("val_loss", patience=10, restore_best_weights=True)],
     )
+
+    # Track progress over time: val metrics + train/val loss curve.  [feedback_show_experiments]
+    val_scores = model.predict(X_val, batch_size=512, verbose=0)
+    val_metrics = metrics_from_ranks(ranks_from_scores(val_scores, ds.val_target, ds.seen_val))
+    track.save_history(history, "artifact_full_hybrid")
+    track.record("artifact train (full hybrid)", val_metrics,
+                 config=f"p10/e60, d{EMBED_DIM}, u{RNN_UNITS}", notes="saved artifact")
+    print(f"  val: {val_metrics}")
 
     # Popularity-weighted "average viewer" genre profile, for mean-centering. [H2]
     pop = ds.popularity.astype(np.float64)
