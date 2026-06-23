@@ -126,10 +126,12 @@ the feedback loop, and costs nothing on HR@10).
 
 | Variant     | Val HR@10  | Val MRR    | Val NDCG@10 |
 | ----------- | ---------- | ---------- | ----------- |
-| id-only     | 0.2570     | 0.1203     | 0.1410      |
-| +genre      | 0.2706     | 0.1316     | 0.1522      |
-| +rating     | 0.2546     | 0.1205     | 0.1403      |
-| full hybrid | **0.2714** | **0.1337** | **0.1541**  |
+| id-only     | 0.2641     | 0.1252     | 0.1466      |
+| +genre      | 0.2712     | 0.1342     | 0.1544      |
+| +rating     | 0.2571     | 0.1240     | 0.1435      |
+| full hybrid | **0.2735** | **0.1348** | **0.1556**  |
+
+(Aligned settings, patience=10/epochs=60. The saved artifact is this full-hybrid config.)
 
 > Still TODO: full all-prefix windows (uncap `max_windows_per_user`), L/dim/cell sweeps,
 > then the one-time TEST run on the frozen config under >=3 seeds with CIs + Wilcoxon.
