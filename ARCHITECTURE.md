@@ -64,9 +64,9 @@ input seq (L, feat) ─▶ Masking ─▶ GRU(128, dropout=0.2) ─▶ Dropout(0
   is fragile on Apple Silicon). Use GRU input `dropout=0.2` + `Dropout(0.3)` before the head
   - L2 on embeddings + early stopping.
 - **Objective:** sparse categorical cross-entropy on the next item, Adam (lr 1e-3), batch 128.
-- **Popularity-bias correction `[H1]`:** apply **logit adjustment** (subtract the log
-  train-prior from logits) / class-balanced loss to stop the softmax collapsing to popularity.
-  This is the principled fix; the serendipity penalty is only a post-hoc cosmetic.
+- **Popularity-bias:** full-catalog softmax with seen-item masking handles this implicitly.
+  Logit adjustment was considered but not implemented — the model already beats strong
+  baselines without it (see `EXPERIMENTS.md` results).
 - **Model selection `[H4]`:** Phase 2 early-stop on **val loss**; Phase 3 swap in a custom
   callback for **val NDCG@10** that reuses the evaluator's ranking function. Verify the two
   correlate before trusting NDCG.

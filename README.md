@@ -65,12 +65,15 @@ explicit masking, and full-catalog ranking metrics with confidence intervals.
 ## Project structure
 
 ```
-src/        model, data prep, training, evaluation, baselines, inference (recommend.py)
-app/api.py  FastAPI service (/health, /catalog, /recommend)
-web/        React frontend (Vite + Tailwind + shadcn/ui)
-artifacts/  trained model weights + encoders (generated locally, not committed)
-data/       datasets (not committed — see below)
-*.md        plan, architecture, audit, experiment protocol
+src/             core library: data prep, model, evaluate, recommend, baselines, track
+  train.py       production training pipeline -> writes artifacts/
+  run_test.py    official test evaluation (frozen config, 3 seeds) -> results slide number
+app/api.py       FastAPI service (/health, /catalog, /recommend)
+web/             React frontend (Vite + Tailwind + shadcn/ui)
+experiments/     one-off research scripts (E0, E3, E4, E5, baselines, ablation) — done
+artifacts/       trained model weights + encoders (generated locally, not committed)
+data/            datasets (not committed — see below)
+*.md             plan, architecture, audit, experiment protocol
 ```
 
 ## Data (not included)
@@ -108,6 +111,27 @@ cd web && npm install && npm run dev   # http://localhost:5173
 
 For a single-process live demo, build the frontend (`npm run build`) and have FastAPI
 serve the static bundle.
+
+## Future considerations
+
+Things explored or considered during the project but not implemented — good starting
+points if the project is extended beyond the course:
+
+- **Logit adjustment (popularity-bias correction):** subtract the log train-prior from
+  the softmax logits to stop the model over-recommending blockbusters. The current model
+  already beats all baselines without it, but this would be the next thing to try if
+  diversity of recommendations matters more than raw HR@10.
+- **Multi-layer GRU:** stack a second GRU layer on top of the first. Not done because a
+  single layer was sufficient on this dataset size (6K users) and adding layers risks
+  overfitting.
+- **GPU training via WSL2:** the current setup trains on CPU (TensorFlow dropped native
+  Windows GPU support after v2.10). WSL2 with CUDA would cut training time from ~13s/epoch
+  to ~2s/epoch on the same machine.
+- **Transformer-based recommender (e.g. SASRec):** attention-based sequential model that
+  outperforms GRU on very large datasets. Overkill for 1M ratings but worth exploring at
+  scale.
+
+---
 
 ## Privacy
 

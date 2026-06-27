@@ -50,10 +50,10 @@ Artifacts written to artifacts/
 
 ## Step 1 — E3: How much history does the model need?
 
-**Script to write:** `src/run_e3.py`  
+**Script:** `experiments/run_e3.py`  
 **Command (once written):**
 ```bash
-python -m src.run_e3
+python -m experiments.run_e3
 ```
 
 **What it does:**
@@ -72,7 +72,7 @@ Evaluates each on validation HR@10, MRR, NDCG@10 and prints a comparison table.
 
 **Decision rule:** if L=20 is within ~0.5% HR@10 of L=50, go with L=20 (simpler model).
 
-- [x] `src/run_e3.py` written
+- [x] `experiments/run_e3.py` written
 - [x] E3 run completed
 - [x] Best `max_len` value noted: `max_len = 20`
 
@@ -92,10 +92,10 @@ The key insight for the professor: L=20 beats L=50. The GRU already captures eve
 
 ## Step 2 — E4: How big should the model be?
 
-**Script to write:** `src/run_e4.py`  
+**Script:** `experiments/run_e4.py`  
 **Command (once written):**
 ```bash
-python -m src.run_e4
+python -m experiments.run_e4
 ```
 
 **What it does:**
@@ -114,7 +114,7 @@ validation HR@10. Also tracks the train-vs-val loss gap to spot overfitting.
 
 **Decision rule:** if d=32 / units=128 ties with d=64 / units=256, keep the smaller one.
 
-- [x] `src/run_e4.py` written
+- [x] `experiments/run_e4.py` written
 - [x] E4 run completed
 - [x] Best size noted: `embed_dim = 32`, `rnn_units = 64`
 
@@ -138,10 +138,10 @@ embed	units	HR@10	Gap	Verdict
 
 ## Step 3 — E5: GRU or LSTM?
 
-**Script to write:** `src/run_e5.py`  
+**Script:** `experiments/run_e5.py`  
 **Command (once written):**
 ```bash
-python -m src.run_e5
+python -m experiments.run_e5
 ```
 
 **What it does:**
@@ -157,7 +157,7 @@ so this is literally one argument change. Compares on validation HR@10 and train
 
 **Decision rule:** pick whichever has higher val HR@10. If tied within 0.3%, pick GRU (fewer params, faster).
 
-- [x] `src/run_e5.py` written
+- [x] `experiments/run_e5.py` written
 - [x] E5 run completed
 - [x] Winner noted: `cell = "gru"` — tied with LSTM (diff=0.001), GRU wins on fewer params
 
@@ -423,7 +423,7 @@ The app needs 3 terminals running at the same time. Always start them in this or
 
 # Run any experiment script from here, e.g.:
 python -m src.train
-python -m src.run_e3
+python -m experiments.run_e3
 ```
 **Needs venv:** YES — prompt shows `(reverie)` when active.
 
@@ -490,7 +490,7 @@ the one number that goes on the results slide. She has two things to do:
 The test set has never been touched during E3/E4/E5. Lea opens it exactly once,
 with the frozen config, and repeats 3+ times to get a stable mean ± std.
 
-Lea needs a script (similar to `src/run_baselines.py` but using `ds.test_hist`
+Lea needs a script (similar to `experiments/run_baselines.py` but using `ds.test_hist`
 and `ds.test_target` instead of val). The locked config to use:
 ```python
 MAX_LEN=20, EMBED_DIM=32, RNN_UNITS=64, CELL="gru"
@@ -498,14 +498,7 @@ MAX_LEN=20, EMBED_DIM=32, RNN_UNITS=64, CELL="gru"
 ```
 Final reported number: `HR@10 = X.XXX ± 0.00X (mean ± std, 3 seeds, test set)`
 
-### 2. The popularity-fix decision
-The docs mention a logit-adjustment trick (dividing scores by popularity^alpha to
-reduce blockbuster bias) but it is **not in the current code**. Lea decides:
-- **Add it**: one line in `src/recommend.py` — worth testing if it improves test HR@10
-- **Remove from docs**: delete the reference in `EXPERIMENTS.md` (E2 entry)
-She must resolve this before the final test run since it changes the model output.
-
-### 3. Train-vs-val chart (the "not cheating" chart)
+### 2. Train-vs-val chart (the "not cheating" chart)
 The loss curves are already saved by `track.save_history()` in `results/`.
 Lea just needs to include `results/curve_artifact_full_hybrid.png` in the slide —
 it shows train loss going down while val loss stays tracked, proving no overfitting.

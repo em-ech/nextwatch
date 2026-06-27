@@ -10,7 +10,7 @@ states what it decides and on which split.
 ## Ground rules (non-negotiable — enforce as a team)
 
 1. **Tune on validation only.** Every knob (dataset, L, dims, layers, cell, MIN_COUNT,
-   logit-adjustment, K, α) is chosen on **val** metrics. `[H6, M3]`
+   K) is chosen on **val** metrics. `[H6, M3]`
 2. **Open the test set exactly once**, on the frozen config, after all decisions. Log it;
    the eval script warns if run more than once.
 3. **Seeds:** report the final config as **mean ± std over ≥3 seeds**. A single run is a
@@ -30,11 +30,11 @@ sanity check. Report the relationship between them once, openly. `[H1-eval]`
 
 **Question:** does a bare GRU beat most-popular on `ml-1m`?
 
-- Fixed: ml-1m, all-prefix windows, L=50, GRU(128), d=32, logit-adjustment ON.
+- Fixed: ml-1m, all-prefix windows, L=50, GRU(128), d=32.
 - Compare to most-popular (train-only counts) on **val** HR@10 + MRR with a bootstrap CI.
-- **Decision:** beats popularity (CI excludes 0) → proceed to the matrix. Ties/loses by
-  day 3 → escalate (logit-adjustment, aggressive MIN_COUNT to shrink V, more augmentation),
-  and if still tied, switch to the **fallback narrative** in `ARCHITECTURE.md §8`.
+- **Decision:** beats popularity (CI excludes 0) → proceed to the matrix. Ties/loses →
+  escalate (aggressive MIN_COUNT to shrink V, more augmentation), and if still tied,
+  switch to the **fallback narrative** in `ARCHITECTURE.md §8`.
 
 This is the single most important experiment. It runs before the frontend, the TV bridge,
 or any tuning.
@@ -46,13 +46,12 @@ or any tuning.
 | ID  | Question                             | Variable                                  | Hold fixed  | Success / decision                                |
 | --- | ------------------------------------ | ----------------------------------------- | ----------- | ------------------------------------------------- |
 | E1  | Does dataset size matter?            | ml-1m vs ml-latest-small                  | best config | pick the corpus with higher val HR@10             |
-| E2  | Does logit-adjustment fix pop. bias? | logit-adj ON vs OFF                       | best config | ON if val HR@10 ↑ AND top-10 pop-bias ↓ `[M1]`    |
 | E3  | How much history matters?            | L ∈ {10, 20, 50, full}                    | best config | smallest L within noise of the best               |
 | E4  | Capacity vs overfit                  | d_movie ∈ {16,32,64} × layers ∈ {1,2}     | best config | smallest model within noise; watch val gap `[M2]` |
 | E5  | Cell type                            | GRU vs LSTM                               | best config | pick higher val HR@10 (expect ~tie)               |
 | E6  | Is the hybrid input justified?       | full vs no-genre-input vs no-rating-input | best config | keep a feature only if it earns val HR@10 `[M3]`  |
 
-Run E0/E1/E2 first (they gate everything). E3–E6 are ablations for the deck's
+Run E0 first (it gates everything). E3–E6 are ablations for the deck's
 "architecture justification." Keep each to a few runs; depth-with-CIs beats breadth.
 
 ---
