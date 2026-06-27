@@ -117,6 +117,9 @@ serve the static bundle.
 Things explored or considered during the project but not implemented — good starting
 points if the project is extended beyond the course:
 
+- **ml-latest-small comparison (E1):** we chose ml-1m from the start based on size
+  (1M ratings vs 100K) and never ran a formal comparison. ml-latest-small is too sparse
+  for a reliable softmax over 9,700 items — the decision was clear enough not to need an experiment.
 - **Logit adjustment (popularity-bias correction):** subtract the log train-prior from
   the softmax logits to stop the model over-recommending blockbusters. The current model
   already beats all baselines without it, but this would be the next thing to try if

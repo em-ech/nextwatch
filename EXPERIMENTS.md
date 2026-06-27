@@ -45,7 +45,6 @@ or any tuning.
 
 | ID  | Question                             | Variable                                  | Hold fixed  | Success / decision                                |
 | --- | ------------------------------------ | ----------------------------------------- | ----------- | ------------------------------------------------- |
-| E1  | Does dataset size matter?            | ml-1m vs ml-latest-small                  | best config | pick the corpus with higher val HR@10             |
 | E3  | How much history matters?            | L ∈ {10, 20, 50, full}                    | best config | smallest L within noise of the best               |
 | E4  | Capacity vs overfit                  | d_movie ∈ {16,32,64} × layers ∈ {1,2}     | best config | smallest model within noise; watch val gap `[M2]` |
 | E5  | Cell type                            | GRU vs LSTM                               | best config | pick higher val HR@10 (expect ~tie)               |
