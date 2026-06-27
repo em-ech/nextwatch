@@ -17,3 +17,6 @@ date,experiment,config,HR@10,MRR,NDCG@10,notes
 2026-06-25 00:39,E4 d64/u256,L20/d64/u256/p10/e60,0.2687,0.1295,0.1505,"E4 capacity sweep, gap=0.5494"
 2026-06-25 01:31,E5 cell=gru,L20/d32/u64/gru/p10/e60,0.2740,0.1345,0.1555,"E5 cell sweep, best_ep=37"
 2026-06-25 01:40,E5 cell=lstm,L20/d32/u64/lstm/p10/e60,0.2730,0.1333,0.1544,"E5 cell sweep, best_ep=33"
+2026-06-27 13:51,TEST seed=42,L20/d32/u64/gru/p10/e60,0.2437,0.1245,0.1414,OFFICIAL TEST RUN — frozen config
+2026-06-27 14:06,TEST seed=0,L20/d32/u64/gru/p10/e60,0.2402,0.1206,0.1375,OFFICIAL TEST RUN — frozen config
+2026-06-27 14:22,TEST seed=7,L20/d32/u64/gru/p10/e60,0.2415,0.1215,0.1390,OFFICIAL TEST RUN — frozen config
