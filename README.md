@@ -184,3 +184,22 @@ points if the project is extended beyond the course:
 Personal streaming exports include billing, payment, IP, account, and device records.
 Reverie only ever reads viewing/ratings files, and `.gitignore` blocks all personal and
 sensitive data from this public repository.
+
+---
+
+## Data sources and acknowledgments
+
+Reverie is built on public data, with thanks to:
+
+- **MovieLens (GroupLens, University of Minnesota)** — the `ml-1m` ratings used to train the
+  sequential GRU model.
+- **The Movie Database (TMDB)** — posters, backdrops, genres, ratings, and streaming
+  availability via the TMDB API. This product uses the TMDB API but is not endorsed or
+  certified by TMDB.
+- **samlearner, "Letterboxd Movie Ratings Data" (Kaggle)** — the multi-user Letterboxd
+  ratings used for the collaborative recommender.
+- **gsimonx37, "Letterboxd" (Kaggle)** — Letterboxd movie metadata (cast, crew, themes,
+  posters) used for the modern catalog and content features.
+
+Personal watch histories (Letterboxd / Netflix exports) are never committed and are used
+only locally.
