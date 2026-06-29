@@ -86,6 +86,15 @@ export function PosterCard({ movie, onReject, onAdd, showMatch }: Props) {
         <h3 className="text-sm font-semibold leading-tight text-foreground">
           {movie.title}
         </h3>
+        <div className="mt-1 flex items-center gap-2 text-xs text-muted-foreground">
+          {movie.year && <span>{movie.year}</span>}
+          {movie.rating != null && (
+            <span className="flex items-center gap-0.5 text-amber-400">
+              <Star className="h-3 w-3 fill-amber-400" />
+              {movie.rating.toFixed(1)}
+            </span>
+          )}
+        </div>
         <div className="mt-1.5 flex flex-wrap gap-1">
           {movie.genres.slice(0, 3).map((g) => (
             <span

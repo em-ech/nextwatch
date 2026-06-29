@@ -9,6 +9,7 @@ export interface Movie {
   genres: string[];
   score?: number; // raw softmax probability (debug)
   match?: number; // Netflix-style 80-99% display match
+  rating?: number | null; // TMDB audience score, 0-10
   poster_url?: string | null;
   backdrop_url?: string | null;
 }

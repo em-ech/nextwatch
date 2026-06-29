@@ -1,0 +1,153 @@
+"""Catalog, recommendations, and watchlist import.
+
+These endpoints are PUBLIC (no auth) so the original single-user demo keeps
+working. They wrap the frozen model in src/recommend.py via app.enrich.
+"""
+
+from __future__ import annotations
+
+import contextlib
+import io
+import os
+import tempfile
+
+from fastapi import APIRouter, File, Form, HTTPException, UploadFile
+from pydantic import BaseModel
+
+from app import enrich
+from src import importers
+from src import recommend as rec
+
+router = APIRouter(tags=["catalog"])
+
+MOVIES_DAT = enrich.MOVIES_DAT
+
+
+class HistItem(BaseModel):
+    movieId: int
+    rating: float = 4.0  # stars
+
+
+class RecRequest(BaseModel):
+    history: list[HistItem] = []
+    n: int = 12
+
+
+@router.get("/health")
+def health() -> dict:
+    return {"status": "ok", "catalog_size": enrich.catalog_size(), "posters": enrich.poster_count()}
+
+
+@router.get("/catalog")
+def catalog(q: str = "", limit: int = 20, genre: str = "") -> list[dict]:
+    """Title search for building a watch history (autocomplete), with an
+    optional genre filter used to populate the genre rows in the UI."""
+    ql = q.lower().strip()
+    gl = genre.strip()
+    items = (
+        m for m in enrich.titles().values()
+        if (not ql or ql in m["title"].lower())
+        and (not gl or gl in m["genres"])
+    )
+    out = sorted(items, key=lambda m: m["title"])[:limit]
+    return [enrich.enrich(m["movieId"]) for m in out]
+
+
+@router.post("/recommend")
+def recommend(req: RecRequest) -> dict:
+    history = [(h.movieId, h.rating) for h in req.history]
+    recs = rec.recommend_movies(history, n=req.n)
+    matches = enrich.match_scores([s for _, s in recs])
+    taste = rec.taste_vector(history) if history else None
+    st = rec.load()
+    return {
+        "recommendations": [
+            {**enrich.enrich(mid, s), "match": m} for (mid, s), m in zip(recs, matches)
+        ],
+        "taste": None if taste is None else {
+            g: round(float(v), 4) for g, v in zip(st["cfg"]["genre_names"], taste)
+        },
+    }
+
+
+def _detect_source(header: str, source: str) -> str:
+    if source != "auto":
+        return source
+    h = header.lower()
+    if "name" in h and "rating" in h:
+        return "letterboxd"
+    if "title" in h and ("start time" in h or "profile name" in h or "duration" in h):
+        return "netflix"
+    raise HTTPException(
+        status_code=400,
+        detail="Unrecognized CSV format (expected Letterboxd ratings.csv or Netflix ViewingActivity.csv)",
+    )
+
+
+def _temp_csv(raw: bytes) -> str:
+    """Write upload bytes to a SYSTEM temp file (never the repo). Caller unlinks."""
+    tf = tempfile.NamedTemporaryFile(delete=False, suffix=".csv")
+    try:
+        tf.write(raw)
+    finally:
+        tf.close()
+    return tf.name
+
+
+@router.post("/import")
+async def import_watchlist(
+    file: UploadFile = File(...),
+    ratings_file: UploadFile | None = File(None),
+    source: str = Form("auto"),
+) -> dict:
+    """Turn a Letterboxd / Netflix export into a Reverie watch history.
+
+    Privacy: processed from a system temp file deleted immediately afterwards;
+    nothing is written under the repo and contents are never logged."""
+    raw = await file.read()
+    if not raw:
+        raise HTTPException(status_code=400, detail="Empty file")
+
+    text = raw.decode("utf-8-sig", errors="replace")
+    lines = text.splitlines()
+    header = lines[0] if lines else ""
+    total = max(0, len(lines) - 1)
+    detected = _detect_source(header, source)
+
+    movie_to_id = rec.load()["movie_to_id"]
+    sink = io.StringIO()  # swallow importer prints (privacy + noise)
+
+    if detected == "letterboxd":
+        path = _temp_csv(raw)
+        try:
+            with contextlib.redirect_stdout(sink):
+                pairs = importers.load_letterboxd(path, movie_to_id, MOVIES_DAT)
+        finally:
+            os.unlink(path)
+    else:  # netflix
+        view_path = _temp_csv(raw)
+        ratings_path = None
+        if ratings_file is not None:
+            rraw = await ratings_file.read()
+            ratings_path = _temp_csv(rraw) if rraw else None
+        try:
+            with contextlib.redirect_stdout(sink):
+                movies_hist, _tv = importers.load_netflix(
+                    view_path, movie_to_id,
+                    ratings_path=ratings_path, movies_dat_path=MOVIES_DAT,
+                )
+            pairs = movies_hist
+        finally:
+            os.unlink(view_path)
+            if ratings_path:
+                os.unlink(ratings_path)
+
+    history = [
+        {**enrich.enrich(mid), "rating": round(float(stars), 1)} for mid, stars in pairs
+    ]
+    return {
+        "source": detected,
+        "total": total,
+        "matched": len(history),
+        "history": history,
+    }

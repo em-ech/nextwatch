@@ -83,3 +83,11 @@ dist/
 .idea/
 .vscode/
 *.swp
+
+# ============================================================
+# Reverie account store (SQLite) - local user data, never committed
+# ============================================================
+reverie.db
+reverie.db-shm
+reverie.db-wal
+.env

@@ -7,6 +7,7 @@ import {
   searchCatalog,
   getRecommendations,
 } from "@/lib/api";
+import { BrandLogo } from "@/components/BrandLogo";
 import { PosterCard } from "@/components/PosterCard";
 import { HeroBanner } from "@/components/HeroBanner";
 import { ImportDropzone } from "@/components/ImportDropzone";
@@ -138,9 +139,7 @@ export default function Index() {
       {/* Brand bar */}
       <div className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <span className="text-2xl font-extrabold tracking-tight text-foreground">
-            Rev<span className="text-primary">erie</span>
-          </span>
+          <BrandLogo />
           <span className="text-xs text-muted-foreground">
             Sequential movie recommender
           </span>

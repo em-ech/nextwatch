@@ -135,7 +135,11 @@ def main() -> int:
     if out_path.exists():
         cache = json.loads(out_path.read_text(encoding="utf-8"))
 
-    todo = [(mid, t, y) for mid, (t, y) in movies.items() if str(mid) not in cache]
+    # Re-fetch entries that predate the `rating` field so a re-run tops them up.
+    todo = [
+        (mid, t, y) for mid, (t, y) in movies.items()
+        if str(mid) not in cache or "rating" not in cache[str(mid)]
+    ]
     print(f"{len(movies)} recommendable movies; {len(cache)} cached; {len(todo)} to fetch.")
 
     session = requests.Session()
@@ -152,11 +156,12 @@ def main() -> int:
                 "tmdb_id": best.get("id"),
                 "poster_url": _img(best.get("poster_path"), POSTER_SIZE),
                 "backdrop_url": _img(best.get("backdrop_path"), BACKDROP_SIZE),
+                "rating": best.get("vote_average"),  # TMDB audience score, 0-10
             }
             if cache[str(mid)]["poster_url"]:
                 hits += 1
         else:
-            cache[str(mid)] = {"tmdb_id": None, "poster_url": None, "backdrop_url": None}
+            cache[str(mid)] = {"tmdb_id": None, "poster_url": None, "backdrop_url": None, "rating": None}
 
         if i % CHECKPOINT_EVERY == 0:
             _save(cache, out_path)
