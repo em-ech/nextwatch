@@ -2,6 +2,44 @@
 const API_BASE =
   (import.meta.env.VITE_API_BASE as string) ?? "http://localhost:8000";
 
+// ---- Auth token storage -------------------------------------------------
+const TOKEN_KEY = "reverie_token";
+
+export function getToken(): string | null {
+  return localStorage.getItem(TOKEN_KEY);
+}
+export function setToken(token: string | null): void {
+  if (token) localStorage.setItem(TOKEN_KEY, token);
+  else localStorage.removeItem(TOKEN_KEY);
+}
+
+// Thrown on a 401 so callers (AuthContext) can log the user out.
+export class UnauthorizedError extends Error {}
+
+// fetch wrapper that injects the Bearer token and surfaces 401s.
+async function authFetch(
+  path: string,
+  init: RequestInit = {},
+): Promise<Response> {
+  const token = getToken();
+  const headers = new Headers(init.headers);
+  if (token) headers.set("Authorization", `Bearer ${token}`);
+  const r = await fetch(`${API_BASE}${path}`, { ...init, headers });
+  if (r.status === 401) {
+    setToken(null);
+    throw new UnauthorizedError("Session expired");
+  }
+  return r;
+}
+
+async function jsonOrThrow<T>(r: Response, fallback: string): Promise<T> {
+  if (!r.ok) {
+    const body = await r.json().catch(() => ({}));
+    throw new Error((body as { detail?: string })?.detail ?? fallback);
+  }
+  return r.json() as Promise<T>;
+}
+
 export interface Movie {
   movieId: number;
   title: string;
@@ -78,4 +116,89 @@ export async function importWatchlist(
     throw new Error(detail?.detail ?? "import failed");
   }
   return r.json();
+}
+
+// ---- Auth ---------------------------------------------------------------
+export interface User {
+  id: number;
+  username: string;
+  display_name?: string | null;
+}
+
+export interface AuthResponse {
+  token: string;
+  user: User;
+}
+
+export interface Me extends User {
+  history_count: number;
+  friend_count: number;
+}
+
+export async function register(
+  username: string,
+  password: string,
+  displayName?: string,
+): Promise<AuthResponse> {
+  const r = await fetch(`${API_BASE}/auth/register`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password, display_name: displayName }),
+  });
+  return jsonOrThrow<AuthResponse>(r, "register failed");
+}
+
+export async function login(
+  username: string,
+  password: string,
+): Promise<AuthResponse> {
+  const r = await fetch(`${API_BASE}/auth/login`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ username, password }),
+  });
+  return jsonOrThrow<AuthResponse>(r, "login failed");
+}
+
+export async function getMe(): Promise<Me> {
+  return jsonOrThrow<Me>(await authFetch("/auth/me"), "failed to load profile");
+}
+
+// ---- Saved watch history (logged-in) ------------------------------------
+export interface HistoryEntry extends Movie {
+  rating: number;
+  position: number;
+}
+
+export async function getSavedHistory(): Promise<HistoryEntry[]> {
+  const data = await jsonOrThrow<{ history: HistoryEntry[] }>(
+    await authFetch("/me/history"),
+    "failed to load history",
+  );
+  return data.history;
+}
+
+export async function addSavedMovie(
+  movieId: number,
+  rating: number,
+): Promise<HistoryEntry[]> {
+  const data = await jsonOrThrow<{ history: HistoryEntry[] }>(
+    await authFetch("/me/history", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ movieId, rating }),
+    }),
+    "failed to add movie",
+  );
+  return data.history;
+}
+
+export async function removeSavedMovie(
+  movieId: number,
+): Promise<HistoryEntry[]> {
+  const data = await jsonOrThrow<{ history: HistoryEntry[] }>(
+    await authFetch(`/me/history/${movieId}`, { method: "DELETE" }),
+    "failed to remove movie",
+  );
+  return data.history;
 }

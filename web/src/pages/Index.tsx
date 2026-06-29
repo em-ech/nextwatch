@@ -6,8 +6,12 @@ import {
   ImportResponse,
   searchCatalog,
   getRecommendations,
+  getSavedHistory,
+  addSavedMovie,
+  removeSavedMovie,
 } from "@/lib/api";
-import { BrandLogo } from "@/components/BrandLogo";
+import { useAuth } from "@/auth/AuthContext";
+import { NavBar } from "@/components/NavBar";
 import { PosterCard } from "@/components/PosterCard";
 import { HeroBanner } from "@/components/HeroBanner";
 import { ImportDropzone } from "@/components/ImportDropzone";
@@ -42,6 +46,17 @@ export default function Index() {
   const [because, setBecause] = useState<BecauseRow | null>(null);
   const [taste, setTaste] = useState<Record<string, number> | null>(null);
   const [loading, setLoading] = useState(false);
+  const { user } = useAuth();
+
+  // When logged in, hydrate the working history from the saved profile.
+  useEffect(() => {
+    if (!user) return;
+    getSavedHistory()
+      .then((saved) =>
+        setHistory(saved.map((m) => ({ movie: m, rating: m.rating }))),
+      )
+      .catch(() => {});
+  }, [user]);
 
   useEffect(() => {
     if (query.trim().length < 2) {
@@ -61,13 +76,18 @@ export default function Index() {
   const inHistory = (id: number) => history.some((h) => h.movie.movieId === id);
 
   const addMovie = (movie: Movie, rating = 4) => {
-    if (!inHistory(movie.movieId)) setHistory((h) => [...h, { movie, rating }]);
+    if (!inHistory(movie.movieId)) {
+      setHistory((h) => [...h, { movie, rating }]);
+      if (user) addSavedMovie(movie.movieId, rating).catch(() => {});
+    }
     setQuery("");
     setResults([]);
   };
 
-  const removeMovie = (id: number) =>
+  const removeMovie = (id: number) => {
     setHistory((h) => h.filter((e) => e.movie.movieId !== id));
+    if (user) removeSavedMovie(id).catch(() => {});
+  };
 
   // Single source of truth: given a history, pull recommendations and derive
   // the hero, top picks, genre rows, and the "because you watched" row.
@@ -120,6 +140,9 @@ export default function Index() {
       ? history
       : [...history, { movie, rating: 1 }];
     setHistory(next);
+    if (user && !inHistory(movie.movieId)) {
+      addSavedMovie(movie.movieId, 1).catch(() => {});
+    }
     await refresh(next);
   };
 
@@ -136,15 +159,7 @@ export default function Index() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Brand bar */}
-      <div className="sticky top-0 z-40 border-b border-border bg-background/80 backdrop-blur-md">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-3">
-          <BrandLogo />
-          <span className="text-xs text-muted-foreground">
-            Sequential movie recommender
-          </span>
-        </div>
-      </div>
+      <NavBar />
 
       {/* Hero: the top pick once we have recommendations, else a branded intro */}
       {hasResults ? (

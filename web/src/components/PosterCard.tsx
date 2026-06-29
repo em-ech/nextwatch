@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { ThumbsDown, Plus, Star } from "lucide-react";
+import { ThumbsDown, Plus, Star, X } from "lucide-react";
 import { Movie } from "@/lib/api";
 import { cn } from "@/lib/utils";
 
@@ -8,19 +8,21 @@ interface Props {
   movie: Movie;
   onReject?: (m: Movie) => void; // "learn from mistakes" feedback
   onAdd?: (m: Movie) => void;
+  onRemove?: (m: Movie) => void; // remove from a saved list (e.g. profile)
   showMatch?: boolean;
 }
 
 // Poster-forward, Netflix-style card. Shows the real TMDB poster when present,
 // and falls back to a crimson gradient + title when it is missing or fails to
 // load. The detail overlay (genres, match %, actions) reveals on hover.
-export function PosterCard({ movie, onReject, onAdd, showMatch }: Props) {
+export function PosterCard({ movie, onReject, onAdd, onRemove, showMatch }: Props) {
   const [broken, setBroken] = useState(false);
   const hasPoster = !!movie.poster_url && !broken;
 
   return (
     <motion.div
       layout
+      exit={{ opacity: 0, scale: 0.9 }}
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       whileHover={{ scale: 1.05, y: -6 }}
@@ -77,6 +79,15 @@ export function PosterCard({ movie, onReject, onAdd, showMatch }: Props) {
             className="rounded-full bg-background/80 p-1.5 text-foreground backdrop-blur-sm hover:bg-primary hover:text-primary-foreground"
           >
             <ThumbsDown className="h-4 w-4" />
+          </button>
+        )}
+        {onRemove && (
+          <button
+            onClick={() => onRemove(movie)}
+            title="Remove from my history"
+            className="rounded-full bg-background/80 p-1.5 text-foreground backdrop-blur-sm hover:bg-destructive hover:text-destructive-foreground"
+          >
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
