@@ -11,3 +11,5 @@ scipy>=1.11
 # Serving (React frontend talks to this API; see web/)
 fastapi>=0.110
 uvicorn[standard]>=0.29
+python-multipart>=0.0.9   # /import watchlist upload (multipart form)
+requests>=2.31            # src/build_posters.py TMDB poster fetch (offline, one-time)
