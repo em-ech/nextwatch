@@ -50,6 +50,17 @@ export interface Movie {
   rating?: number | null; // TMDB audience score, 0-10
   poster_url?: string | null;
   backdrop_url?: string | null;
+  providers?: Record<string, RegionProviders> | null; // streaming by region
+}
+
+export interface ProviderLogo {
+  name: string;
+  logo: string;
+}
+
+export interface RegionProviders {
+  link?: string;
+  flatrate?: ProviderLogo[];
 }
 
 export interface HistItem {

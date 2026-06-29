@@ -12,8 +12,11 @@ export function BrandLogo({ className }: Props) {
       <span className="flex h-8 w-8 items-center justify-center rounded-full bg-primary text-primary-foreground">
         <Film className="h-4 w-4" />
       </span>
-      <span className="text-2xl font-extrabold tracking-tight text-foreground">
-        Rev<span className="text-primary">erie</span>
+      <span
+        className="text-2xl font-extrabold tracking-tight text-white"
+        style={{ WebkitTextStroke: "1px hsl(var(--primary))" }}
+      >
+        Reverie
       </span>
     </div>
   );

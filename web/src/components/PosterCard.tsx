@@ -2,7 +2,8 @@ import { useState } from "react";
 import { motion } from "framer-motion";
 import { ThumbsDown, Plus, Star, X } from "lucide-react";
 import { Movie } from "@/lib/api";
-import { cn } from "@/lib/utils";
+import { ProviderBadges } from "@/components/ProviderBadges";
+import { cn, genreLabel } from "@/lib/utils";
 
 interface Props {
   movie: Movie;
@@ -118,7 +119,7 @@ export function PosterCard({
               key={g}
               className="rounded bg-secondary px-1.5 py-0.5 text-[10px] text-secondary-foreground"
             >
-              {g}
+              {genreLabel(g)}
             </span>
           ))}
         </div>
@@ -128,6 +129,7 @@ export function PosterCard({
             {movie.match}% match
           </div>
         )}
+        <ProviderBadges movie={movie} />
       </div>
     </motion.div>
   );

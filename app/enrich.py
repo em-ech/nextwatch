@@ -15,6 +15,7 @@ from src import recommend as rec
 
 MOVIES_DAT = "data/ml-1m/movies.dat"
 POSTERS_JSON = "artifacts/posters.json"
+PROVIDERS_JSON = "artifacts/providers.json"
 
 # Netflix-style match-% display band over the returned top-N (log-normalized).
 _MATCH_CEIL = 0.99
@@ -22,12 +23,14 @@ _MATCH_FLOOR = 0.80
 
 _titles: dict[int, dict] = {}
 _posters: dict[int, dict] = {}
+_providers: dict[int, dict] = {}
 
 
 def load_metadata() -> None:
-    """Populate the title + poster caches once at startup."""
+    """Populate the title + poster + streaming-provider caches once at startup."""
     _load_titles()
     _load_posters()
+    _load_providers()
 
 
 def _load_titles() -> None:
@@ -60,6 +63,18 @@ def _load_posters() -> None:
         }
 
 
+def _load_providers() -> None:
+    """movieId -> {US: {...}, ES: {...}} streaming availability (optional)."""
+    p = Path(PROVIDERS_JSON)
+    if not p.exists():
+        return
+    with open(p, encoding="utf-8") as fh:
+        raw = json.load(fh)
+    for k, v in raw.items():
+        if v:  # skip movies with no providers in any region
+            _providers[int(k)] = v
+
+
 def recommendable_ids() -> set[int]:
     """Original MovieLens ids the frozen model can actually recommend/encode."""
     return set(rec.load()["movie_to_id"].keys())
@@ -85,7 +100,7 @@ def enrich(movie_id: int, score: float | None = None) -> dict:
     poster = _posters.get(
         movie_id, {"poster_url": None, "backdrop_url": None, "rating": None}
     )
-    out = {**meta, **poster}
+    out = {**meta, **poster, "providers": _providers.get(movie_id)}
     if score is not None:
         out["score"] = round(float(score), 4)
     return out

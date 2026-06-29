@@ -45,18 +45,25 @@ export default function Blend() {
           </div>
         ) : (
           <>
-            {/* Header + blurb */}
-            <header className="space-y-3">
-              <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-primary">
-                <Sparkles className="h-4 w-4" /> Reverie Blend
-              </div>
-              <h1 className="text-4xl font-extrabold text-foreground">
-                {meName} <span className="text-primary">×</span> {friendName}
-              </h1>
-              <p className="max-w-2xl text-lg text-muted-foreground">
-                {blend.blurb}
-              </p>
-            </header>
+            {/* Top: header + blurb (left), blended taste radar (right) */}
+            <div className="grid gap-8 lg:grid-cols-[1fr_minmax(300px,420px)]">
+              <header className="space-y-3">
+                <div className="flex items-center gap-3 text-sm font-semibold uppercase tracking-widest text-primary">
+                  <Sparkles className="h-4 w-4" /> Reverie Blend
+                </div>
+                <h1 className="text-4xl font-extrabold text-foreground">
+                  {meName} <span className="text-primary">×</span> {friendName}
+                </h1>
+                <p className="text-lg text-muted-foreground">{blend.blurb}</p>
+              </header>
+              {blend.taste && (
+                <BlendRadar
+                  taste={blend.taste}
+                  meName={meName}
+                  friendName={friendName}
+                />
+              )}
+            </div>
 
             {/* Watch together */}
             {blend.watch_together.length > 0 && (
@@ -64,7 +71,7 @@ export default function Blend() {
                 title="Watch together"
                 subtitle={
                   blend.degraded === "no_overlap"
-                    ? "Your tastes are far apart — here's the closest middle ground."
+                    ? "Your tastes are far apart. Here's the closest middle ground."
                     : "Movies you'd both love, ranked by how strongly you both match."
                 }
               >
@@ -84,17 +91,6 @@ export default function Blend() {
                   <PosterCard key={m.movieId} movie={m} />
                 ))}
               </CategoryRow>
-            )}
-
-            {/* Blended taste radar */}
-            {blend.taste && (
-              <section className="max-w-xl">
-                <BlendRadar
-                  taste={blend.taste}
-                  meName={meName}
-                  friendName={friendName}
-                />
-              </section>
             )}
 
             {blend.degraded === "no_history" && (
