@@ -106,6 +106,12 @@ def enrich(movie_id: int, score: float | None = None) -> dict:
     return out
 
 
+def top_titles(history: list[tuple[int, float]], k: int = 2) -> list[str]:
+    """Titles of the highest-rated films in a history, for the taste blurb."""
+    top = sorted(history, key=lambda h: h[1], reverse=True)[:k]
+    return [enrich(mid)["title"] for mid, _ in top]
+
+
 def match_scores(scores: list[float]) -> list[int]:
     """Map raw softmax scores onto a Netflix-style 80-99% match band, monotonic
     in score; degenerate inputs (one item or all-equal) return the ceiling."""

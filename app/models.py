@@ -37,6 +37,9 @@ class User(Base):
     history: Mapped[list["HistoryItem"]] = relationship(
         back_populates="user", cascade="all, delete-orphan",
     )
+    watchlist: Mapped[list["WatchlistItem"]] = relationship(
+        back_populates="user", cascade="all, delete-orphan",
+    )
 
 
 class HistoryItem(Base):
@@ -59,6 +62,26 @@ class HistoryItem(Base):
     added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     user: Mapped["User"] = relationship(back_populates="history")
+
+
+class WatchlistItem(Base):
+    """A movie the user wants to watch (the 'add to watchlist' swipe). Distinct
+    from HistoryItem: no rating, not consumed by the recommender, just saved."""
+
+    __tablename__ = "watchlist_items"
+    __table_args__ = (
+        UniqueConstraint("user_id", "movie_id", name="uq_watchlist_user_movie"),
+        Index("ix_watchlist_user", "user_id"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    user_id: Mapped[int] = mapped_column(
+        ForeignKey("users.id", ondelete="CASCADE"), nullable=False,
+    )
+    movie_id: Mapped[int] = mapped_column(Integer, nullable=False)  # original MovieLens id
+    added_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    user: Mapped["User"] = relationship(back_populates="watchlist")
 
 
 class Friendship(Base):

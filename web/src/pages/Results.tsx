@@ -38,6 +38,7 @@ export default function Results() {
   const [genreRows, setGenreRows] = useState<GenreRow[]>([]);
   const [because, setBecause] = useState<BecauseRow | null>(null);
   const [taste, setTaste] = useState<Record<string, number> | null>(null);
+  const [blurb, setBlurb] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
   const refresh = useCallback(async (hist: HistEntry[]) => {
@@ -51,6 +52,7 @@ export default function Results() {
       const all = res.recommendations;
       setRecs(all.slice(0, 14));
       setTaste(res.taste);
+      setBlurb(res.blurb ?? null);
 
       const topGenres = res.taste
         ? Object.entries(res.taste)
@@ -154,10 +156,16 @@ export default function Results() {
                 Your picks
               </h1>
             )}
-            <p className="max-w-md text-muted-foreground">
-              Recommendations from your watch history, with the genres you lean
-              toward on the right.
-            </p>
+            {blurb ? (
+              <p className="max-w-md text-lg leading-relaxed text-foreground">
+                {blurb}
+              </p>
+            ) : (
+              <p className="max-w-md text-muted-foreground">
+                Recommendations from your watch history, with the genres you
+                lean toward on the right.
+              </p>
+            )}
           </div>
 
           {taste && <TasteRadar taste={taste} />}

@@ -4,6 +4,24 @@ Concrete design for the model, data pipeline, recommendation logic, evaluation, 
 serving. Revised to fold in every mitigation from `AUDIT.md`. Audit tags like `[C1]`
 reference findings there. Numbers are starting points confirmed by `EXPERIMENTS.md`.
 
+> **Post-submission update (2026-06): a second model.** Everything below describes the
+> frozen GRU submission and still holds. After the deadline we added a **neural
+> collaborative-filtering (NCF)** model to fix the GRU's hard limit: it trains on
+> MovieLens `ml-1m` (films up to the year 2000), so it cannot recommend modern titles.
+>
+> The NCF model is a rating regression: a 50-dim **user embedding** and **movie
+> embedding**, per-user and per-movie **bias** terms, and a **frozen content tower**
+> (`Embedding(Constant(genres + standardized numerics))`, the same trick as the GRU's
+> `genre_lookup`) concatenated into `Dense(64) -> Dropout -> Dense(32) -> Dropout ->
+> Dense(1)`, output `= MLP + user_bias + movie_bias + global_mean`. Loss MSE, reported
+> RMSE. Built by `scripts/build_ncf_dataset.py` / `train_ncf.py` / `eval_ncf.py`; model
+> in `src/ncf_model.py`; writeup in `notebooks/ncf_collaborative.ipynb`.
+>
+> **Serving / app layer** (also post-submission): the FastAPI service grew a layered
+> structure (`app/routers/*` over `app/services/*` over `app/enrich.py` + SQLAlchemy
+> models) with accounts, a per-user history + **watchlist**, friends, a "Blend", a
+> `/catalog/browse` deck, and a template **taste blurb** (`app/services/taste_service.py`).
+
 ---
 
 ## 1. End-to-end data flow

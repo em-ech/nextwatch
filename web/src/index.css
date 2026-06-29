@@ -138,6 +138,20 @@ All colors MUST be HSL.
     box-shadow: var(--shadow-cinematic);
   }
 
+  /* Frosted glass panel (hybrid dark + glassmorphism). */
+  .glass {
+    background: hsl(0 0% 100% / 0.04);
+    backdrop-filter: blur(16px) saturate(140%);
+    -webkit-backdrop-filter: blur(16px) saturate(140%);
+    border: 1px solid hsl(0 0% 100% / 0.08);
+  }
+  .glass-strong {
+    background: hsl(0 0% 8% / 0.65);
+    backdrop-filter: blur(22px) saturate(160%);
+    -webkit-backdrop-filter: blur(22px) saturate(160%);
+    border: 1px solid hsl(0 0% 100% / 0.1);
+  }
+
   @keyframes float {
     0%,
     100% {

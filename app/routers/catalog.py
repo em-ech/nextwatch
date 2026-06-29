@@ -9,12 +9,14 @@ from __future__ import annotations
 import contextlib
 import io
 import os
+import random
 import tempfile
 
 from fastapi import APIRouter, File, Form, HTTPException, UploadFile
 from pydantic import BaseModel
 
 from app import enrich
+from app.services.taste_service import taste_blurb
 from src import importers
 from src import recommend as rec
 
@@ -53,21 +55,47 @@ def catalog(q: str = "", limit: int = 20, genre: str = "") -> list[dict]:
     return [enrich.enrich(m["movieId"]) for m in out]
 
 
-@router.post("/recommend")
-def recommend(req: RecRequest) -> dict:
-    history = [(h.movieId, h.rating) for h in req.history]
-    recs = rec.recommend_movies(history, n=req.n)
+@router.get("/catalog/browse")
+def browse(genre: str = "", limit: int = 30, exclude: str = "") -> list[dict]:
+    """A poster-rich, acclaimed pool to swipe or scroll through while building a
+    history (cold start). Sorted by audience rating, then shuffled within the
+    top band so the deck feels fresh. Optional genre filter and excluded ids."""
+    gl = genre.strip()
+    drop = {int(x) for x in exclude.split(",") if x.strip().lstrip("-").isdigit()}
+    pool = [
+        e
+        for m in enrich.titles().values()
+        if (e := enrich.enrich(m["movieId"]))["movieId"] not in drop
+        and e.get("poster_url")
+        and (not gl or gl in e["genres"])
+    ]
+    pool.sort(key=lambda e: (e.get("rating") or 0.0), reverse=True)
+    top = pool[: max(limit * 4, 80)]  # rating-ranked band, then shuffled for variety
+    random.shuffle(top)
+    return top[:limit]
+
+
+def _recommend_payload(history: list[tuple[int, float]], n: int) -> dict:
+    recs = rec.recommend_movies(history, n=n)
     matches = enrich.match_scores([s for _, s in recs])
     taste = rec.taste_vector(history) if history else None
     st = rec.load()
+    taste_dict = None if taste is None else {
+        g: round(float(v), 4) for g, v in zip(st["cfg"]["genre_names"], taste)
+    }
     return {
         "recommendations": [
             {**enrich.enrich(mid, s), "match": m} for (mid, s), m in zip(recs, matches)
         ],
-        "taste": None if taste is None else {
-            g: round(float(v), 4) for g, v in zip(st["cfg"]["genre_names"], taste)
-        },
+        "taste": taste_dict,
+        "blurb": taste_blurb(taste_dict, enrich.top_titles(history)),
     }
+
+
+@router.post("/recommend")
+def recommend(req: RecRequest) -> dict:
+    history = [(h.movieId, h.rating) for h in req.history]
+    return _recommend_payload(history, req.n)
 
 
 def _detect_source(header: str, source: str) -> str:

@@ -11,6 +11,15 @@ via a content bridge, demo on real personal data. Tuning kept shallow; stretch g
 spec), [`AUDIT.md`](AUDIT.md) (pre-build adversarial review + mitigations),
 [`EXPERIMENTS.md`](EXPERIMENTS.md) (runnable experiment protocol).
 
+> **Post-submission update (2026-06): from MVP to product.** The plan below is the frozen
+> course scope (GRU on `ml-1m` + content bridge + demo). After the deadline the project
+> grew in two ways. **Model:** a neural collaborative-filtering recommender on ~9.9M
+> Letterboxd ratings that recommends modern films the GRU never saw and beats every naive
+> baseline (RMSE 1.372, wins for 94% of users); see `notebooks/ncf_collaborative.ipynb`.
+> **Product (Phase 2):** the FastAPI app gained accounts, friends, a "Blend", a template
+> taste blurb, and a swipe-or-cards watch-history builder (watchlist + rated history, a
+> deck that tunes to each pick). These are additive; the frozen submission is unchanged.
+
 **Post-audit cut list (protect the core 50% = model + integration):** TMDb API → hand-built
 title CSV; taste-drift animation → static before/after radar; serendipity dial → stretch;
 persistent learning → stretch; the 8-axis sweep → the focused matrix in `EXPERIMENTS.md`.

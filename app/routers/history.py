@@ -11,9 +11,9 @@ from app import enrich
 from app.db import get_db
 from app.deps import get_current_user
 from app.models import HistoryItem, User
+from app.routers.catalog import _recommend_payload
 from app.schemas import HistoryAddRequest, HistoryRatingRequest
 from app.services.recommend_service import ordered_history
-from src import recommend as rec
 
 router = APIRouter(prefix="/me", tags=["history"])
 
@@ -99,15 +99,4 @@ def recommend_from_history(
     db: Session = Depends(get_db),
 ) -> dict:
     history = ordered_history(db, user.id)
-    recs = rec.recommend_movies(history, n=n)
-    matches = enrich.match_scores([s for _, s in recs])
-    taste = rec.taste_vector(history) if history else None
-    st = rec.load()
-    return {
-        "recommendations": [
-            {**enrich.enrich(mid, s), "match": m} for (mid, s), m in zip(recs, matches)
-        ],
-        "taste": None if taste is None else {
-            g: round(float(v), 4) for g, v in zip(st["cfg"]["genre_names"], taste)
-        },
-    }
+    return _recommend_payload(history, n)

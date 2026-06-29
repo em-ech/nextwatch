@@ -71,6 +71,7 @@ export interface HistItem {
 export interface RecResponse {
   recommendations: Movie[];
   taste: Record<string, number> | null;
+  blurb?: string | null;
 }
 
 export interface ImportItem extends Movie {
@@ -93,6 +94,20 @@ export async function searchCatalog(
   if (genre) params.set("genre", genre);
   const r = await fetch(`${API_BASE}/catalog?${params.toString()}`);
   if (!r.ok) throw new Error("catalog search failed");
+  return r.json();
+}
+
+// A poster-rich pool to swipe / browse while building a history (cold start).
+export async function browseCatalog(
+  genre = "",
+  limit = 30,
+  excludeIds: number[] = [],
+): Promise<Movie[]> {
+  const params = new URLSearchParams({ limit: String(limit) });
+  if (genre) params.set("genre", genre);
+  if (excludeIds.length) params.set("exclude", excludeIds.join(","));
+  const r = await fetch(`${API_BASE}/catalog/browse?${params.toString()}`);
+  if (!r.ok) throw new Error("browse failed");
   return r.json();
 }
 
@@ -212,6 +227,35 @@ export async function removeSavedMovie(
     "failed to remove movie",
   );
   return data.history;
+}
+
+// ---- Watchlist (logged-in: films you want to watch) ---------------------
+export async function getWatchlist(): Promise<Movie[]> {
+  const data = await jsonOrThrow<{ watchlist: Movie[] }>(
+    await authFetch("/me/watchlist"),
+    "failed to load watchlist",
+  );
+  return data.watchlist;
+}
+
+export async function addWatchlistMovie(movieId: number): Promise<Movie[]> {
+  const data = await jsonOrThrow<{ watchlist: Movie[] }>(
+    await authFetch("/me/watchlist", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ movieId }),
+    }),
+    "failed to add to watchlist",
+  );
+  return data.watchlist;
+}
+
+export async function removeWatchlistMovie(movieId: number): Promise<Movie[]> {
+  const data = await jsonOrThrow<{ watchlist: Movie[] }>(
+    await authFetch(`/me/watchlist/${movieId}`, { method: "DELETE" }),
+    "failed to remove from watchlist",
+  );
+  return data.watchlist;
 }
 
 // ---- Friends ------------------------------------------------------------

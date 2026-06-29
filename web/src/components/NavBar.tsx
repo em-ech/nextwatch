@@ -1,35 +1,10 @@
 import { Link, useNavigate } from "react-router-dom";
 import { User as UserIcon, LogOut } from "lucide-react";
 import { useAuth } from "@/auth/AuthContext";
-import { useRegion, Region } from "@/lib/RegionContext";
 import { BrandLogo } from "@/components/BrandLogo";
 import { Button } from "@/components/ui/button";
-import { cn } from "@/lib/utils";
 
-// Toggles the streaming-availability region (drives ProviderBadges).
-function RegionToggle() {
-  const { region, setRegion } = useRegion();
-  return (
-    <div className="flex items-center overflow-hidden rounded-md border border-border text-xs">
-      {(["US", "ES"] as Region[]).map((r) => (
-        <button
-          key={r}
-          onClick={() => setRegion(r)}
-          className={cn(
-            "px-2 py-1 transition-colors",
-            region === r
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground",
-          )}
-        >
-          {r}
-        </button>
-      ))}
-    </div>
-  );
-}
-
-// Top navigation: brand + region toggle + (when logged in) Profile/Friends + logout.
+// Top navigation: brand + (when logged in) Profile/Friends + logout.
 export function NavBar() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -41,7 +16,6 @@ export function NavBar() {
           <BrandLogo />
         </Link>
         <nav className="flex items-center gap-2">
-          <RegionToggle />
           {user ? (
             <>
               <Link to="/friends">
