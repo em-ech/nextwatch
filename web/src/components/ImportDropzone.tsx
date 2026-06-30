@@ -81,15 +81,10 @@ export function ImportDropzone({ onImported }: Props) {
       ) : error ? (
         <p className="text-sm text-destructive">{error}</p>
       ) : (
-        <>
-          <p className="text-xs text-muted-foreground">
-            Drop a Letterboxd <code>ratings.csv</code> or Netflix{" "}
-            <code>ViewingActivity.csv</code>
-          </p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Reverie adds them to your Seen list with their ratings
-          </p>
-        </>
+        <p className="text-xs text-muted-foreground">
+          Drop a Letterboxd <code>ratings.csv</code> or Netflix{" "}
+          <code>ViewingActivity.csv</code>
+        </p>
       )}
     </div>
   );

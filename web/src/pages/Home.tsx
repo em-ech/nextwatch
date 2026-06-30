@@ -37,12 +37,11 @@ export default function Home() {
         <div className="absolute inset-0 bg-gradient-radial" />
         <div className="relative z-10 mx-auto flex max-w-3xl flex-col items-center px-6 py-20 text-center">
           <h1 className="text-5xl font-extrabold tracking-tight text-foreground sm:text-6xl">
-            What should you <span className="text-primary">watch next</span>?
+            What should I <span className="text-primary">watch next</span>?
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-            Import what you have already seen. A collaborative neural network
-            learns your taste and lines up what to watch next, across movies old
-            and new.
+            Reverie is a collaborative neural network that learns your taste and
+            lines up what to watch next, across movies old and new.
           </p>
 
           {/* Import first: the main way in. */}
