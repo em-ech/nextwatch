@@ -40,14 +40,15 @@ export default function Home() {
             What should you <span className="text-primary">watch next</span>?
           </h1>
           <p className="mt-5 max-w-xl text-lg text-muted-foreground">
-            Import what you have already seen, and Reverie lines up what to
-            watch next, across movies old and new.
+            Import what you have already seen. A collaborative neural network
+            learns your taste and lines up what to watch next, across movies old
+            and new.
           </p>
 
           {/* Import first: the main way in. */}
-          <div className="glass mt-10 w-full max-w-md rounded-2xl p-5 text-left">
+          <div className="glass mt-10 w-full max-w-md rounded-2xl p-5 text-center">
             <h2 className="mb-2 text-sm font-bold text-foreground">
-              Import what you have seen
+              Import films you have seen
             </h2>
             <ImportDropzone onImported={onImported} />
             {imported.length > 0 && (

@@ -50,26 +50,27 @@ export function BlendRadar({ taste, meName, friendName }: Props) {
             dataKey="genre"
             tick={{ fill: "hsl(var(--muted-foreground))", fontSize: 11 }}
           />
+          {/* Individuals are outlines only; only the blend is filled. */}
           <Radar
             name={meName}
             dataKey="me"
             stroke="#60a5fa"
             fill="#60a5fa"
-            fillOpacity={0.15}
+            fillOpacity={0}
           />
           <Radar
             name={friendName}
             dataKey="friend"
             stroke="#fbbf24"
             fill="#fbbf24"
-            fillOpacity={0.15}
+            fillOpacity={0}
           />
           <Radar
             name="Blend"
             dataKey="blend"
             stroke="hsl(var(--primary))"
             fill="hsl(var(--primary))"
-            fillOpacity={0.4}
+            fillOpacity={0.45}
           />
           <Legend wrapperStyle={{ fontSize: 12 }} />
         </RadarChart>
