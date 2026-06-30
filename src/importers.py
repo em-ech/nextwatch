@@ -72,12 +72,22 @@ def _parse_stars(val: str | float | int | None, default: float = 4.0) -> float:
         return default
 
 
+# Leading articles, in any language MovieLens uses a trailing ", The" form for.
+# We move a leading article to the end so that the Letterboxd/Netflix front-article
+# form ("The Matrix") and the movies.dat trailing form ("Matrix, The") collapse to
+# the same key. The transform is applied to BOTH sides, so it only ever adds matches.
+_ARTICLES = {"the", "a", "an", "la", "le", "les", "el", "los", "il", "der", "die", "das", "l"}
+
+
 def _normalise_title(title: str) -> str:
-    """Lower-case, strip year suffixes and punctuation for fuzzy matching."""
+    """Lower-case, strip year/punctuation, and canonicalise leading articles."""
     t = title.lower().strip()
     t = re.sub(r"\s*\(\d{4}\)\s*$", "", t)     # remove trailing " (2001)"
     t = re.sub(r"[^\w\s]", " ", t)             # punctuation → space
     t = re.sub(r"\s+", " ", t).strip()
+    head, _, tail = t.partition(" ")           # move a leading article to the end
+    if tail and head in _ARTICLES:
+        t = f"{tail} {head}"
     return t
 
 

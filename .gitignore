@@ -83,3 +83,18 @@ dist/
 .idea/
 .vscode/
 *.swp
+
+# ============================================================
+# Presentation: keep the deck + GIFs, not the large demo video
+# ============================================================
+presentation/demo.mov
+presentation/*.mp4
+presentation/anim/
+
+# ============================================================
+# Reverie account store (SQLite) - local user data, never committed
+# ============================================================
+reverie.db
+reverie.db-shm
+reverie.db-wal
+.env

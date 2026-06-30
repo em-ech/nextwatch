@@ -11,3 +11,10 @@ scipy>=1.11
 # Serving (React frontend talks to this API; see web/)
 fastapi>=0.110
 uvicorn[standard]>=0.29
+python-multipart>=0.0.9   # /import watchlist upload (multipart form)
+requests>=2.31            # src/build_posters.py TMDB poster fetch (offline, one-time)
+# Accounts / friends / Blend platform (stateful layer around the frozen model)
+sqlalchemy>=2.0           # SQLite persistence (users, history, friendships)
+bcrypt>=4.0               # password hashing (used directly; passlib is unmaintained)
+pyjwt>=2.8                # JWT bearer auth
+pydantic-settings>=2      # env-driven Settings (app/config.py)

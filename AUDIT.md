@@ -7,6 +7,14 @@ the revised `ARCHITECTURE.md`; experiments to resolve open questions are in `EXP
 
 Severity: **C** critical (fix before coding) · **H** high · **M** medium · **L** low.
 
+> **Post-submission update (2026-06).** This audit reviewed the frozen GRU build and
+> remains the record of that review. One scope limitation it implied has since been
+> resolved out of band: the GRU trains on MovieLens `ml-1m` (films up to the year 2000)
+> and cannot recommend modern titles or score a brand-new user. After the deadline we
+> added a **neural collaborative-filtering** model (~9.9M Letterboxd ratings) that does
+> both; it beats every naive baseline globally and for 94% of users. See
+> `notebooks/ncf_collaborative.ipynb` and the update banner in `ARCHITECTURE.md`.
+
 ---
 
 ## Critical — fix before writing code

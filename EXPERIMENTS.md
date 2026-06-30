@@ -5,6 +5,27 @@ architecture justification, overfitting prevention). Scoped down from the audit'
 over-broad sweep to the experiments that actually move a decision. Every experiment
 states what it decides and on which split.
 
+> **Post-submission update (2026-06): collaborative-model experiments.** The protocol
+> below is the frozen GRU evidence. After the deadline we ran a separate line of
+> experiments on a neural collaborative-filtering model (~9.9M Letterboxd ratings,
+> rating regression, loss MSE / reported RMSE), reproduced end to end in
+> `notebooks/ncf_collaborative.ipynb`:
+>
+> | Predictor            | Test RMSE |
+> | -------------------- | --------- |
+> | global-mean baseline | 2.072     |
+> | user-mean baseline   | 1.963     |
+> | movie-mean baseline  | 1.619     |
+> | **neural net (NCF)** | **1.372** |
+>
+> It beats the movie-mean baseline for **94%** of users (median per-user RMSE 1.320).
+> Two real people were slotted in with their most-recent films held out by date: exact
+> rating prediction for a brand-new light user sits near their personal average (the
+> cold-start floor), but the **"will they love it (4+ stars)"** classifier held
+> **precision 1.00** for both (zero false alarms). Honest finding: collaborative signal
+> works where content alone failed; cold-start rating prediction needs more of a new
+> user's history to move.
+
 ---
 
 ## Ground rules (non-negotiable — enforce as a team)
@@ -43,12 +64,12 @@ or any tuning.
 
 ## Core matrix (Phase 3–4, all decided on validation)
 
-| ID  | Question                             | Variable                                  | Hold fixed  | Success / decision                                |
-| --- | ------------------------------------ | ----------------------------------------- | ----------- | ------------------------------------------------- |
-| E3  | How much history matters?            | L ∈ {10, 20, 50, full}                    | best config | smallest L within noise of the best               |
-| E4  | Capacity vs overfit                  | d_movie ∈ {16,32,64} × layers ∈ {1,2}     | best config | smallest model within noise; watch val gap `[M2]` |
-| E5  | Cell type                            | GRU vs LSTM                               | best config | pick higher val HR@10 (expect ~tie)               |
-| E6  | Is the hybrid input justified?       | full vs no-genre-input vs no-rating-input | best config | keep a feature only if it earns val HR@10 `[M3]`  |
+| ID  | Question                       | Variable                                  | Hold fixed  | Success / decision                                |
+| --- | ------------------------------ | ----------------------------------------- | ----------- | ------------------------------------------------- |
+| E3  | How much history matters?      | L ∈ {10, 20, 50, full}                    | best config | smallest L within noise of the best               |
+| E4  | Capacity vs overfit            | d_movie ∈ {16,32,64} × layers ∈ {1,2}     | best config | smallest model within noise; watch val gap `[M2]` |
+| E5  | Cell type                      | GRU vs LSTM                               | best config | pick higher val HR@10 (expect ~tie)               |
+| E6  | Is the hybrid input justified? | full vs no-genre-input vs no-rating-input | best config | keep a feature only if it earns val HR@10 `[M3]`  |
 
 Run E0 first (it gates everything). E3–E6 are ablations for the deck's
 "architecture justification." Keep each to a few runs; depth-with-CIs beats breadth.
@@ -123,12 +144,12 @@ rating alone hurts HR@10 but the full hybrid wins on MRR and NDCG. Decision: **f
 — best ranking quality (MRR), and the rating channel is required for the app's thumbs-down
 feedback feature.
 
-| Variant     | Val HR@10  | Val MRR    | Val NDCG@10 |
-| ----------- | ---------- | ---------- | ----------- |
-| id-only     | 0.2765     | 0.1310     | 0.1539      |
-| +genre      | 0.2812     | 0.1324     | 0.1561      |
-| +rating     | 0.2558     | 0.1290     | 0.1471      |
-| full hybrid | 0.2740     | **0.1345** | **0.1555**  |
+| Variant     | Val HR@10 | Val MRR    | Val NDCG@10 |
+| ----------- | --------- | ---------- | ----------- |
+| id-only     | 0.2765    | 0.1310     | 0.1539      |
+| +genre      | 0.2812    | 0.1324     | 0.1561      |
+| +rating     | 0.2558    | 0.1290     | 0.1471      |
+| full hybrid | 0.2740    | **0.1345** | **0.1555**  |
 
 Note: id-only here (0.2765) is higher than the earlier headline run (0.2641) because this
 uses the locked MAX_LEN=20 — consistent with E3 showing L=20 > L=50.
