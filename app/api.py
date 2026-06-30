@@ -22,14 +22,18 @@ from fastapi.middleware.cors import CORSMiddleware
 from app import enrich
 from app.db import init_db
 from app.routers import auth, blend, catalog, friends, history, watchlist
+from src import ncf_recommend as ncf
 from src import recommend as rec
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI):
     init_db()                    # create SQLite tables (idempotent)
-    enrich.load_metadata()       # titles + posters
-    rec.recommend_movies([])     # warm the model graph before the first request
+    enrich.load_metadata()       # titles + posters (modern catalog or ml-1m)
+    if enrich.is_modern():
+        ncf.load()               # warm the collaborative model + catalog maps
+    else:
+        rec.recommend_movies([])  # warm the GRU graph before the first request
     yield
 
 

@@ -24,6 +24,9 @@ class Settings(BaseSettings):
     db_url: str = "sqlite:///./reverie.db"
     default_region: str = "US"
     tmdb_api_key: str | None = None
+    # "modern" -> Letterboxd catalog served by the NCF model (post-2000 films);
+    # "ml1m" -> the original MovieLens GRU demo.
+    catalog_mode: str = "modern"
 
 
 settings = Settings()

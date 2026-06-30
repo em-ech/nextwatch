@@ -12,9 +12,9 @@ reference findings there. Numbers are starting points confirmed by `EXPERIMENTS.
 > The NCF model is a rating regression: a 50-dim **user embedding** and **movie
 > embedding**, per-user and per-movie **bias** terms, and a **frozen content tower**
 > (`Embedding(Constant(genres + standardized numerics))`, the same trick as the GRU's
-> `genre_lookup`) concatenated into `Dense(64) -> Dropout -> Dense(32) -> Dropout ->
-> Dense(1)`, output `= MLP + user_bias + movie_bias + global_mean`. Loss MSE, reported
-> RMSE. Built by `scripts/build_ncf_dataset.py` / `train_ncf.py` / `eval_ncf.py`; model
+> `genre_lookup`) concatenated into a small MLP (`Dense(64)`, dropout, `Dense(32)`,
+> dropout, `Dense(1)`), output `= MLP + user_bias + movie_bias + global_mean`. Loss MSE,
+> reported as RMSE. Built by `scripts/build_ncf_dataset.py` / `train_ncf.py` / `eval_ncf.py`; model
 > in `src/ncf_model.py`; writeup in `notebooks/ncf_collaborative.ipynb`.
 >
 > **Serving / app layer** (also post-submission): the FastAPI service grew a layered

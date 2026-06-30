@@ -61,12 +61,12 @@ The collaborative NCF model is a rating regression (1 to 10, loss MSE, reported 
 trained on ~9.9M ratings. It beats all three naive baselines on the held-out test set,
 and beats the toughest per-movie baseline for the large majority of individual users.
 
-| Predictor              | Test RMSE  |
-| ---------------------- | ---------- |
-| global-mean baseline   | 2.072      |
-| user-mean baseline     | 1.963      |
-| movie-mean baseline    | 1.619      |
-| **neural net (NCF)**   | **1.372**  |
+| Predictor            | Test RMSE |
+| -------------------- | --------- |
+| global-mean baseline | 2.072     |
+| user-mean baseline   | 1.963     |
+| movie-mean baseline  | 1.619     |
+| **neural net (NCF)** | **1.372** |
 
 Per user, the net beats the movie-mean baseline for **94%** of viewers (median per-user
 RMSE 1.320). Two real people were slotted in and their most recent films held out by
@@ -133,6 +133,22 @@ and intentionally excluded.
 - **TV catalog:** an IMDb TV-shows CSV (title, genres, description) in `data/`.
 - **Personal demo (optional):** a user's own Letterboxd / Netflix export. These contain
   private information and are **never** committed (see `.gitignore`).
+
+### Modern catalog (the app's default)
+
+The app serves a **modern** catalog (post-2000 films) from the collaborative model by
+default (`REVERIE_CATALOG_MODE=modern`). Build it once from the Letterboxd metadata and
+the trained NCF artifacts:
+
+```bash
+python -m scripts.build_modern_catalog --movies ~/Downloads/movie_data.csv \
+  --ncf artifacts/ncf --limit 8000 --min-votes 50 --out artifacts/modern
+```
+
+Posters come straight from the dataset (Letterboxd CDN), so no TMDB key is needed. Set
+`REVERIE_CATALOG_MODE=ml1m` to fall back to the original MovieLens GRU demo. Switching
+modes changes the movie id space (tmdb ids vs MovieLens ids), so start a fresh `reverie.db`
+when you switch.
 
 ## Setup & run
 

@@ -36,17 +36,19 @@ export interface HistEntry {
 
 type ViewMode = "swipe" | "cards";
 const VIEW_KEY = "reverie_build_view";
+// TMDB genre names, matching the modern catalog.
 const GENRES = [
   "Action",
   "Comedy",
   "Drama",
-  "Sci-Fi",
+  "Science Fiction",
   "Romance",
   "Animation",
   "Thriller",
   "Horror",
   "Adventure",
   "Crime",
+  "Fantasy",
 ];
 
 export default function BuildHistory() {

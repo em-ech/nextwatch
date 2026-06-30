@@ -11,11 +11,13 @@ import json
 import math
 from pathlib import Path
 
+from app.config import settings
 from src import recommend as rec
 
 MOVIES_DAT = "data/ml-1m/movies.dat"
 POSTERS_JSON = "artifacts/posters.json"
 PROVIDERS_JSON = "artifacts/providers.json"
+MODERN_CATALOG = "artifacts/modern/catalog.json"
 
 # Netflix-style match-% display band over the returned top-N (log-normalized).
 _MATCH_CEIL = 0.99
@@ -24,13 +26,45 @@ _MATCH_FLOOR = 0.80
 _titles: dict[int, dict] = {}
 _posters: dict[int, dict] = {}
 _providers: dict[int, dict] = {}
+_recommendable: set[int] = set()
+
+
+def is_modern() -> bool:
+    return settings.catalog_mode == "modern"
 
 
 def load_metadata() -> None:
-    """Populate the title + poster + streaming-provider caches once at startup."""
-    _load_titles()
-    _load_posters()
-    _load_providers()
+    """Populate the title + poster (+ provider) caches once at startup. In modern
+    mode the catalog is the Letterboxd films the NCF model can score; otherwise
+    it is MovieLens ml-1m for the GRU demo."""
+    if is_modern():
+        _load_modern()
+    else:
+        _load_titles()
+        _load_posters()
+        _load_providers()
+
+
+def _load_modern() -> None:
+    """The modern catalog: tmdb_id -> title/year/genres/poster/rating, built by
+    scripts/build_modern_catalog.py."""
+    if not Path(MODERN_CATALOG).exists():
+        raise FileNotFoundError(
+            f"Modern catalog not found at {MODERN_CATALOG}. Build it with "
+            "`python -m scripts.build_modern_catalog --movies <movie_data.csv>`, "
+            "or set REVERIE_CATALOG_MODE=ml1m for the MovieLens demo."
+        )
+    with open(MODERN_CATALOG, encoding="utf-8") as fh:
+        catalog = json.load(fh)
+    for k, v in catalog.items():
+        mid = int(k)
+        _titles[mid] = {
+            "movieId": mid, "title": v["title"], "year": v["year"], "genres": v["genres"],
+        }
+        _posters[mid] = {
+            "poster_url": v.get("poster_url"), "backdrop_url": None, "rating": v.get("rating"),
+        }
+        _recommendable.add(mid)
 
 
 def _load_titles() -> None:
@@ -76,7 +110,10 @@ def _load_providers() -> None:
 
 
 def recommendable_ids() -> set[int]:
-    """Original MovieLens ids the frozen model can actually recommend/encode."""
+    """Ids the app can recommend/encode: modern catalog tmdb_ids, or the frozen
+    GRU's MovieLens ids in ml1m mode."""
+    if is_modern():
+        return _recommendable
     return set(rec.load()["movie_to_id"].keys())
 
 
@@ -110,6 +147,18 @@ def top_titles(history: list[tuple[int, float]], k: int = 2) -> list[str]:
     """Titles of the highest-rated films in a history, for the taste blurb."""
     top = sorted(history, key=lambda h: h[1], reverse=True)[:k]
     return [enrich(mid)["title"] for mid, _ in top]
+
+
+def match_from_ratings(ratings: list[float]) -> list[int]:
+    """Map NCF predicted ratings (1-10) onto the Netflix-style 80-99% match band,
+    monotonic in the predicted rating. Used by the modern (collaborative) path."""
+    if not ratings:
+        return []
+    hi, lo = max(ratings), min(ratings)
+    if hi == lo:
+        return [round(_MATCH_CEIL * 100)] * len(ratings)
+    span = _MATCH_CEIL - _MATCH_FLOOR
+    return [round((_MATCH_FLOOR + span * (r - lo) / (hi - lo)) * 100) for r in ratings]
 
 
 def match_scores(scores: list[float]) -> list[int]:

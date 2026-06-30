@@ -18,6 +18,7 @@ from pydantic import BaseModel
 from app import enrich
 from app.services.taste_service import taste_blurb
 from src import importers
+from src import ncf_recommend as ncf
 from src import recommend as rec
 
 router = APIRouter(tags=["catalog"])
@@ -76,6 +77,8 @@ def browse(genre: str = "", limit: int = 30, exclude: str = "") -> list[dict]:
 
 
 def _recommend_payload(history: list[tuple[int, float]], n: int) -> dict:
+    if enrich.is_modern():
+        return _modern_payload(history, n)
     recs = rec.recommend_movies(history, n=n)
     matches = enrich.match_scores([s for _, s in recs])
     taste = rec.taste_vector(history) if history else None
@@ -89,6 +92,23 @@ def _recommend_payload(history: list[tuple[int, float]], n: int) -> dict:
         ],
         "taste": taste_dict,
         "blurb": taste_blurb(taste_dict, enrich.top_titles(history)),
+    }
+
+
+def _modern_payload(history: list[tuple[int, float]], n: int) -> dict:
+    """Modern catalog served by the collaborative NCF model (fold-in + item-item)."""
+    recs = ncf.rank_for_history(history, n=n)
+    matches = enrich.match_from_ratings([r for _, r in recs])
+    taste = (
+        ncf.taste_genres(history, lambda mid: enrich.enrich(mid)["genres"])
+        if history else None
+    )
+    return {
+        "recommendations": [
+            {**enrich.enrich(mid, r), "match": m} for (mid, r), m in zip(recs, matches)
+        ],
+        "taste": taste or None,
+        "blurb": taste_blurb(taste or None, enrich.top_titles(history)),
     }
 
 
@@ -110,6 +130,48 @@ def _detect_source(header: str, source: str) -> str:
         status_code=400,
         detail="Unrecognized CSV format (expected Letterboxd ratings.csv or Netflix ViewingActivity.csv)",
     )
+
+
+def _modern_import(detected: str, raw: bytes, ratings_raw: bytes | None) -> list[tuple[int, float]]:
+    """Match a Letterboxd / Netflix export to the modern catalog by normalized
+    title + year. Letterboxd carries star ratings; Netflix is title-only seen
+    history, recorded at a neutral 3.5. Returns (tmdb_id, stars 0.5-5)."""
+    import pandas as pd
+
+    from src.importers import _normalise_title
+
+    index: dict[tuple[str, str], int] = {}
+    for mid, m in enrich.titles().items():
+        nt = _normalise_title(m["title"])
+        index[(nt, str(m["year"]))] = mid
+        index.setdefault((nt, ""), mid)  # year-less fallback
+
+    def match(title, year) -> int | None:
+        if not isinstance(title, str) or not title.strip():
+            return None
+        nt = _normalise_title(title)
+        y = ""
+        try:
+            y = str(int(float(year)))
+        except (TypeError, ValueError):
+            y = ""
+        return index.get((nt, y)) or index.get((nt, ""))
+
+    df = pd.read_csv(io.BytesIO(raw), on_bad_lines="skip")
+    out: dict[int, float] = {}  # dedupe, last rating wins
+    if detected == "letterboxd":
+        df = df.dropna(subset=["Rating"]) if "Rating" in df.columns else df
+        for _, r in df.iterrows():
+            mid = match(r.get("Name"), r.get("Year"))
+            if mid is not None:
+                out[mid] = float(min(max(r["Rating"], 0.5), 5.0))
+    else:  # netflix: title-only, seen at a neutral rating
+        col = "Title" if "Title" in df.columns else df.columns[0]
+        for t in df[col].dropna():
+            mid = match(str(t).split(":")[0], None)
+            if mid is not None:
+                out.setdefault(mid, 3.5)
+    return list(out.items())
 
 
 def _temp_csv(raw: bytes) -> str:
@@ -141,6 +203,14 @@ async def import_watchlist(
     header = lines[0] if lines else ""
     total = max(0, len(lines) - 1)
     detected = _detect_source(header, source)
+
+    if enrich.is_modern():
+        ratings_raw = await ratings_file.read() if ratings_file is not None else None
+        pairs = _modern_import(detected, raw, ratings_raw)
+        history = [
+            {**enrich.enrich(mid), "rating": round(float(stars), 1)} for mid, stars in pairs
+        ]
+        return {"source": detected, "total": total, "matched": len(history), "history": history}
 
     movie_to_id = rec.load()["movie_to_id"]
     sink = io.StringIO()  # swallow importer prints (privacy + noise)

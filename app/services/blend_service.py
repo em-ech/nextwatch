@@ -16,9 +16,16 @@ from app.models import User
 from app.services import friend_service as fs
 from app.services.blurb_service import blend_blurb
 from app.services.recommend_service import ordered_history
+from src import ncf_recommend as ncf
 from src import recommend as rec
 
 BLEND_POOL = 60  # wide per-person pull so the intersection has material
+
+
+def _modern_taste_vec(history, genre_names) -> np.ndarray:
+    """Rating-weighted genre proportions aligned to genre_names (modern mode)."""
+    prof = ncf.taste_genres(history, lambda mid: enrich.enrich(mid)["genres"])
+    return np.array([prof.get(g, 0.0) for g in genre_names], dtype=float)
 
 
 class BlendError(Exception):
@@ -71,8 +78,20 @@ def blend(db: Session, me_id: int, friend_id: int, n: int = 12) -> dict:
             "degraded": "no_history",
         }
 
-    me_recs = dict(rec.recommend_movies(me_hist, n=BLEND_POOL))
-    fr_recs = dict(rec.recommend_movies(fr_hist, n=BLEND_POOL))
+    if enrich.is_modern():
+        me_recs = dict(ncf.rank_for_history(me_hist, n=BLEND_POOL))
+        fr_recs = dict(ncf.rank_for_history(fr_hist, n=BLEND_POOL))
+        genre_names = ncf.genre_names()
+        t_me = _modern_taste_vec(me_hist, genre_names)
+        t_fr = _modern_taste_vec(fr_hist, genre_names)
+        match_fn = enrich.match_from_ratings
+    else:
+        me_recs = dict(rec.recommend_movies(me_hist, n=BLEND_POOL))
+        fr_recs = dict(rec.recommend_movies(fr_hist, n=BLEND_POOL))
+        genre_names = rec.load()["cfg"]["genre_names"]
+        t_me = np.asarray(rec.taste_vector(me_hist))
+        t_fr = np.asarray(rec.taste_vector(fr_hist))
+        match_fn = enrich.match_scores
 
     inter = set(me_recs) & set(fr_recs)
     ranked = sorted(
@@ -90,7 +109,7 @@ def blend(db: Session, me_id: int, friend_id: int, n: int = 12) -> dict:
         ranked = sorted(union.items(), key=lambda x: x[1], reverse=True)
 
     top = ranked[:n]
-    matches = enrich.match_scores([s for _, s in top])
+    matches = match_fn([s for _, s in top])
     watch_together = [
         {**enrich.enrich(mid, s), "match": m} for (mid, s), m in zip(top, matches)
     ]
@@ -99,10 +118,7 @@ def blend(db: Session, me_id: int, friend_id: int, n: int = 12) -> dict:
     common_ids = {mid for mid, _ in me_hist} & {mid for mid, _ in fr_hist}
     already_in_common = [enrich.enrich(mid) for mid in common_ids]
 
-    # Blended taste = average of the two mean-centered genre vectors.
-    genre_names = rec.load()["cfg"]["genre_names"]
-    t_me = rec.taste_vector(me_hist)
-    t_fr = rec.taste_vector(fr_hist)
+    # Blended taste = average of the two genre vectors.
     t_blend = (np.asarray(t_me) + np.asarray(t_fr)) / 2
     taste = {
         "me": _vec_dict(t_me, genre_names),

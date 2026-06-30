@@ -14,7 +14,10 @@ export function BrandLogo({ className }: Props) {
       </span>
       <span
         className="text-2xl font-extrabold tracking-tight text-white"
-        style={{ WebkitTextStroke: "1px hsl(var(--primary))" }}
+        style={{
+          textShadow:
+            "2px 2px 0 hsl(var(--primary)), 4px 4px 0 hsl(var(--primary) / 0.45)",
+        }}
       >
         Reverie
       </span>
