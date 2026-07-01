@@ -365,53 +365,15 @@
         border-color: rgba(225, 29, 29, 0.6);
         background: rgba(225, 29, 29, 0.08);
       }
-      .gru {
-        display: flex;
-        align-items: center;
-        gap: 6px;
-        margin-top: 24px;
-      }
-      .cell {
-        width: 80px;
-        height: 62px;
-        border: 1px solid rgba(91, 155, 243, 0.55);
-        border-radius: 10px;
-        background: var(--panel-2);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 13px;
-        color: var(--muted);
-        animation: cellpulse 3s ease-in-out infinite;
-      }
-      .gru .cell:nth-child(3) {
-        animation-delay: 0.4s;
-      }
-      .gru .cell:nth-child(5) {
-        animation-delay: 0.8s;
-      }
-      .gru .cell:nth-child(7) {
-        animation-delay: 1.2s;
-      }
-      .gru .cell:nth-child(9) {
-        animation-delay: 1.6s;
-      }
-      @keyframes cellpulse {
-        0%,
-        70%,
-        100% {
-          box-shadow: none;
-          color: var(--muted);
-        }
-        12% {
-          box-shadow: 0 0 0 2px rgba(91, 155, 243, 0.6);
-          color: var(--blue);
-        }
-      }
-      .recur {
-        color: var(--muted);
-        font-size: 20px;
-      }
+      .gru { display: flex; align-items: center; gap: 6px; margin-top: 24px; }
+      .cell { width: 80px; height: 62px; border: 1px solid rgba(91, 155, 243, 0.55); border-radius: 10px;
+        background: var(--panel-2); display: flex; align-items: center; justify-content: center;
+        font-size: 13px; color: var(--muted); animation: cellpulse 3s ease-in-out infinite; }
+      .gru .cell:nth-child(3) { animation-delay: 0.4s; } .gru .cell:nth-child(5) { animation-delay: 0.8s; }
+      .gru .cell:nth-child(7) { animation-delay: 1.2s; } .gru .cell:nth-child(9) { animation-delay: 1.6s; }
+      @keyframes cellpulse { 0%, 70%, 100% { box-shadow: none; color: var(--muted); }
+        12% { box-shadow: 0 0 0 2px rgba(91, 155, 243, 0.6); color: var(--blue); } }
+      .recur { color: var(--muted); font-size: 20px; }
       table {
         border-collapse: collapse;
         font-size: 18px;
@@ -507,6 +469,11 @@
       }
       .bf.blue {
         background: var(--blue);
+      }
+      .bar.pick {
+        outline: 2px solid rgba(225, 29, 29, 0.5);
+        outline-offset: 7px;
+        border-radius: 8px;
       }
       .bv {
         color: #cfcfcf;
@@ -1124,7 +1091,8 @@
         </svg>
         <div class="note">
           The real GRU run: training loss keeps falling, validation bottoms at
-          epoch 16 then climbs. Early stopping restores the best weights.
+          epoch 16 then climbs. Early stopping restores the best weights,
+          alongside <b>dropout (0.3)</b> on the GRU output.
         </div>
       </section>
 
@@ -1151,17 +1119,25 @@
             <span class="bv">0.274</span>
           </div>
         </div>
-        <div class="note">
-          HR@10 across the E3 sweep. We then kept <b>d32 / u64</b> (E4, a
-          smaller train–val gap than bigger nets) and <b>GRU over LSTM</b> (E5,
-          same score, fewer parameters).
+        <div class="note">HR@10 across the E3 sweep.</div>
+        <div class="pipe" style="margin-top: 16px">
+          <div class="node blue">
+            <b>E4 · d32 / u64</b
+            ><span>smaller train–val gap than bigger nets</span>
+          </div>
+          <div class="node blue">
+            <b>E5 · GRU over LSTM</b><span>same score, fewer parameters</span>
+          </div>
         </div>
       </section>
 
       <!-- 15 ablation -->
       <section class="slide">
         <div class="kicker">Feature engineering · E6 ablation</div>
-        <div class="title sm">Genre helps. Rating alone hurts.</div>
+        <div class="title sm">
+          Genre helps. Rating alone hurts.<br />
+          We ship the <span class="red">hybrid</span>.
+        </div>
         <div class="bars">
           <div class="bar">
             <span class="bl">id only</span>
@@ -1178,15 +1154,16 @@
             <div class="bt"><div class="bf red" style="width: 19%"></div></div>
             <span class="bv">0.256</span>
           </div>
-          <div class="bar">
-            <span class="bl">full hybrid</span>
+          <div class="bar pick">
+            <span class="bl"><b class="red">full hybrid</b></span>
             <div class="bt"><div class="bf blue" style="width: 77%"></div></div>
             <span class="bv">0.274</span>
           </div>
         </div>
         <div class="note">
-          HR@10. The <b>full hybrid</b> we ship wins on MRR (0.135) and powers
-          the live thumbs-down, the rating channel is what lets a "no" re-rank.
+          HR@10. The <b class="red">full hybrid</b> is what we ship — it wins
+          on MRR (0.135) and powers the live thumbs-down, the rating channel
+          is what lets a "no" re-rank.
         </div>
       </section>
 
@@ -1267,9 +1244,10 @@
           <div class="c tp">4</div>
         </div>
         <div class="note">
-          A held-out viewer's most-recent films. Conservative (it misses some),
-          but every film it flagged as a love was one, the trustworthy short
-          list a recommender needs.
+          A held-out viewer's most-recent films, with "love" defined as a
+          rating of <b>4/5 or higher</b>. Conservative (it misses some), but
+          every film it flagged as a love was one, the trustworthy short list
+          a recommender needs.
         </div>
       </section>
 
