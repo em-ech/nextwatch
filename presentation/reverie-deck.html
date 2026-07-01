@@ -365,15 +365,53 @@
         border-color: rgba(225, 29, 29, 0.6);
         background: rgba(225, 29, 29, 0.08);
       }
-      .gru { display: flex; align-items: center; gap: 6px; margin-top: 24px; }
-      .cell { width: 80px; height: 62px; border: 1px solid rgba(91, 155, 243, 0.55); border-radius: 10px;
-        background: var(--panel-2); display: flex; align-items: center; justify-content: center;
-        font-size: 13px; color: var(--muted); animation: cellpulse 3s ease-in-out infinite; }
-      .gru .cell:nth-child(3) { animation-delay: 0.4s; } .gru .cell:nth-child(5) { animation-delay: 0.8s; }
-      .gru .cell:nth-child(7) { animation-delay: 1.2s; } .gru .cell:nth-child(9) { animation-delay: 1.6s; }
-      @keyframes cellpulse { 0%, 70%, 100% { box-shadow: none; color: var(--muted); }
-        12% { box-shadow: 0 0 0 2px rgba(91, 155, 243, 0.6); color: var(--blue); } }
-      .recur { color: var(--muted); font-size: 20px; }
+      .gru {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        margin-top: 24px;
+      }
+      .cell {
+        width: 80px;
+        height: 62px;
+        border: 1px solid rgba(91, 155, 243, 0.55);
+        border-radius: 10px;
+        background: var(--panel-2);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 13px;
+        color: var(--muted);
+        animation: cellpulse 3s ease-in-out infinite;
+      }
+      .gru .cell:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+      .gru .cell:nth-child(5) {
+        animation-delay: 0.8s;
+      }
+      .gru .cell:nth-child(7) {
+        animation-delay: 1.2s;
+      }
+      .gru .cell:nth-child(9) {
+        animation-delay: 1.6s;
+      }
+      @keyframes cellpulse {
+        0%,
+        70%,
+        100% {
+          box-shadow: none;
+          color: var(--muted);
+        }
+        12% {
+          box-shadow: 0 0 0 2px rgba(91, 155, 243, 0.6);
+          color: var(--blue);
+        }
+      }
+      .recur {
+        color: var(--muted);
+        font-size: 20px;
+      }
       table {
         border-collapse: collapse;
         font-size: 18px;

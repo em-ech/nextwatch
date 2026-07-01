@@ -19,15 +19,15 @@ we chose ml-1m deliberately and it worked.
 
 ## What we kept
 
-| Stat | Value |
-|------|-------|
-| Total ratings | 1,000,209 |
-| Unique users | 6,040 |
-| Unique movies (raw) | 3,706 |
-| Movies after MIN_COUNT ≥ 5 | 3,413 |
-| Median interactions per user | 96 |
-| Range of interactions per user | 20 – 2314 |
-| Eligible users (≥ 3 interactions) | 6,040 |
+| Stat                              | Value     |
+| --------------------------------- | --------- |
+| Total ratings                     | 1,000,209 |
+| Unique users                      | 6,040     |
+| Unique movies (raw)               | 3,706     |
+| Movies after MIN_COUNT ≥ 5        | 3,413     |
+| Median interactions per user      | 96        |
+| Range of interactions per user    | 20 – 2314 |
+| Eligible users (≥ 3 interactions) | 6,040     |
 
 ### Filtering rule
 
@@ -42,31 +42,31 @@ We **kept a movie** in the training vocabulary if and only if it received
 
 ### Rating distribution
 
-| Stars | Count |
-|-------|-------|
-| 1 | 56,174 |
-| 2 | 107,557 |
-| 3 | 261,197 |
-| 4 | 348,971 |
-| 5 | 226,310 |
+| Stars | Count   |
+| ----- | ------- |
+| 1     | 56,174  |
+| 2     | 107,557 |
+| 3     | 261,197 |
+| 4     | 348,971 |
+| 5     | 226,310 |
 
 ### Top 5 genres by title count
 
-| Genre | Movies |
-|-------|--------|
-| Drama | 1,603 |
-| Comedy | 1,200 |
-| Action | 503 |
-| Thriller | 492 |
-| Romance | 471 |
+| Genre    | Movies |
+| -------- | ------ |
+| Drama    | 1,603  |
+| Comedy   | 1,200  |
+| Action   | 503    |
+| Thriller | 492    |
+| Romance  | 471    |
 
 ## What we did NOT use (and why)
 
-| Dataset | Why excluded |
-|---------|-------------|
-| `ml-latest-small` | Fallback only; far too sparse for a reliable softmax over 9,700 items. |
+| Dataset                           | Why excluded                                                                 |
+| --------------------------------- | ---------------------------------------------------------------------------- |
+| `ml-latest-small`                 | Fallback only; far too sparse for a reliable softmax over 9,700 items.       |
 | Netflix Prize (`combined_data_*`) | No genre metadata; 2 GB+; day-level timestamps. One-liner deck mention only. |
-| IMDB reviews | Sentiment dataset — no users, no sequences, wrong task. |
+| IMDB reviews                      | Sentiment dataset — no users, no sequences, wrong task.                      |
 
 ## Personal export files (for the live demo)
 
@@ -75,8 +75,7 @@ The importers in `src/importers.py` map them to MovieLens IDs at runtime,
 on the demo machine only.
 
 - **Letterboxd** (`ratings.csv`): rated-film set with star ratings.
-  Used as the taste-profile seed, *not* as a training sequence (no reliable order).
+  Used as the taste-profile seed, _not_ as a training sequence (no reliable order).
 - **Netflix** (`ViewingActivity.csv`, `Ratings.csv`): viewing history + thumbs.
   ~81 % TV, Spanish-localized. ~20-30 top shows are resolved to English/genres
   for the TV recommendation demo.
-
