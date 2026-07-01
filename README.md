@@ -60,8 +60,8 @@ engine, any platform that lives or dies on retention.
   watchlist, rate what you have seen, the deck tunes to each pick), a template taste
   blurb, friends, and a "Blend" that intersects two people's recommendations.
 
-See [`PROJECT_PLAN.md`](PROJECT_PLAN.md), [`ARCHITECTURE.md`](ARCHITECTURE.md),
-[`AUDIT.md`](AUDIT.md), and [`EXPERIMENTS.md`](EXPERIMENTS.md) for the full design,
+See [`PROJECT_PLAN.md`](docs/PROJECT_PLAN.md), [`ARCHITECTURE.md`](docs/ARCHITECTURE.md),
+[`AUDIT.md`](docs/AUDIT.md), and [`EXPERIMENTS.md`](docs/EXPERIMENTS.md) for the full design,
 adversarial pre-build review, and experiment protocol.
 
 ## Results so far (MovieLens ml-1m, validation)
